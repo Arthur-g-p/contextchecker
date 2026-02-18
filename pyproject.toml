@@ -1,0 +1,7 @@
+[project]
+name = "ragcheckerlite"
+version = "0.1.0"
+description = "A liter Refchecker"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
