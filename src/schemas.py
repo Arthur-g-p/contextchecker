@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import List, Literal
 
+from typing import Optional
+
 # input for refchecker
 class InputItem(BaseModel):
     reference: str
@@ -24,3 +26,15 @@ class Verdict(BaseModel):
 
 class VerdictResult(BaseModel):
     verdicts: List[Verdict]
+
+class ClaimValidationResult(BaseModel):
+    claim: str = Field(description="The triplet converted back to string")
+    is_faithful: bool = Field(description="True if supported by text, False if hallucinated")
+    explanation: str = Field(description="Short reasoning for the verdict")
+
+class MissingClaimsResult(BaseModel):
+    triplets: List[Triplet]
+
+# Der entscheidende Wrapper für den Batch-Call!
+class ValidationBatchResult(BaseModel):
+    results: List[ClaimValidationResult]

@@ -1,142 +1,410 @@
 import asyncio
+import json
+from dataclasses import dataclass
+from enum import Enum
 from typing import List, Dict, Any, Optional
-from openai import AsyncOpenAI
-from openai import AsyncOpenAI, APIConnectionError, RateLimitError, BadRequestError, AuthenticationError, NotFoundError, InternalServerError, APITimeoutError, APIError
-from litellm import acompletion, APIError as LiteLLMError, supports_reasoning, get_model_info
+from openai import (
+    AsyncOpenAI,
+    APIError, APIStatusError, APIConnectionError, APITimeoutError,
+    AuthenticationError, PermissionDeniedError, BadRequestError,
+    NotFoundError, ConflictError, UnprocessableEntityError,
+    RateLimitError, InternalServerError,
+)
+import litellm
+from litellm import (
+    acompletion, supports_reasoning, get_model_info,
+    ContextWindowExceededError, ContentPolicyViolationError,
+    UnsupportedParamsError, JSONSchemaValidationError,
+    BudgetExceededError, ServiceUnavailableError as LiteLLMServiceUnavailable,
+)
 from tqdm.asyncio import tqdm_asyncio
 from sys import exit
-from src.stats import GLOBAL_STATS 
+from src.stats import GLOBAL_STATS
+
+litellm.suppress_debug_info = True
+
+
+# ───────────────────────────────────────────────────────────────
+#  RETRY MATRIX
+#  Each strategy is a complete request configuration.
+#  On capability errors, we advance to the next strategy.
+#  First real request discovers the working strategy (serialized).
+#  All subsequent requests use the locked strategy concurrently.
+# ───────────────────────────────────────────────────────────────
+
+@dataclass
+class RetryStrategy:
+    """One level in the retry matrix. Readable and explicit."""
+    name: str
+    reasoning_effort: Optional[str] = None   # "low", "medium", "high" — OpenAI standard. None = don't send.
+    use_schema: bool = True                  # Strict JSON Schema (structured output, constrained decoding)
+    use_json_object: bool = False            # Loose JSON (valid JSON, shape not enforced)
+    temperature: float = 0.0
+
+
+# Best case at top, vanilla at bottom.
+# On capability errors (BadRequest, UnsupportedParams), we walk down.
+RETRY_MATRIX = [
+    RetryStrategy("Reasoning + Schema",  reasoning_effort="low",  use_schema=True),
+    RetryStrategy("Schema Only",                                  use_schema=True),
+    RetryStrategy("Reasoning + JSON",    reasoning_effort="low",  use_json_object=True),
+    RetryStrategy("JSON Only",                                    use_json_object=True),
+    RetryStrategy("Vanilla")
+]
+
+
+class ErrorAction(Enum):
+    """What to do when an API error occurs."""
+    FATAL = "fatal"   # Exit program — unrecoverable
+    SKIP  = "skip"    # Return "", continue batch — per-item failure
+    RETRY = "retry"   # Backoff and retry — transient
+
 
 class LLMClient:
-    def __init__(self, base_url: str, api_key: str, model: str, concurrency: int = 10):
+    def __init__(self, api_key: str, model: str, base_url: Optional[str] = None, concurrency: int = 10):
         self.base_url = base_url
         self.api_key = api_key
         self.model = model
         self.concurrency = concurrency
         
-        # Instanz für Raw-Requests
-        self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
-        self._connection_verified = False
+        # OpenAI SDK client — only created if base_url is set (direct endpoint mode)
+        if self.base_url:
+            self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+        else:
+            self.client = None  # LiteLLM mode — no direct client needed
         
-        # DIE AMPEL (SEMAPHORE) - Gilt für ALLE Requests dieses Clients
+        self._connection_verified = False
         self.sem = asyncio.Semaphore(self.concurrency)
 
-    async def generate(self, messages: List[Dict], schema: Any = None,max_retries=2, **kwargs) -> str:
+        # Retry matrix state (OpenAI SDK path only)
+        self._strategy_index = 0
+        self._strategy_discovered = False   # True after first successful request
+        self._discovery_lock = asyncio.Lock()  # Serializes strategy discovery
+        self._cache_hit_logged = False  # Only log cache hint once
+
+        sdk_mode = "OpenAI SDK" if self.base_url else "LiteLLM"
+        print(f"🔧 LLMClient initialized: {self.model} via {sdk_mode}")
+
+
+    @property
+    def strategy(self) -> RetryStrategy:
+        """Current retry strategy."""
+        return RETRY_MATRIX[self._strategy_index]
+
+
+    def _next_strategy(self) -> bool:
+        """Advance to next strategy. Returns True if advanced, False if at bottom."""
+        if self._strategy_index < len(RETRY_MATRIX) - 1:
+            self._strategy_index += 1
+            print(f"   ⬇️  Next strategy: '{self.strategy.name}'")
+            return True
+        return False
+
+
+    # ───────────────────────────────────────────────────────────────
+    #  CENTRAL ERROR HANDLER
+    #  Order matters! Subclasses MUST be checked before parents.
+    # ───────────────────────────────────────────────────────────────
+
+    def _handle_api_error(self, e: Exception, attempt: int = 0, max_retries: int = 0) -> ErrorAction:
+
+        # ── FATAL: Auth / Permissions / Not Found ─────────────────
+
+        if isinstance(e, AuthenticationError):
+            print(f"\n⛔ AUTH ERROR ({self.model})")
+            print(f"   API Key rejected or expired.")
+            print(f"   Key: {self.api_key[:6]}...")
+            print(f"   Error: {e}")
+            return ErrorAction.FATAL
+
+        if isinstance(e, PermissionDeniedError):
+            print(f"\n⛔ PERMISSION DENIED ({self.model})")
+            print(f"   Your API key is valid but lacks access to this resource.")
+            print(f"   Check your plan/tier or model permissions.")
+            print(f"   Error: {e}")
+            return ErrorAction.FATAL
+
+        if isinstance(e, NotFoundError):
+            print(f"\n⛔ NOT FOUND: Model '{self.model}' does not exist on {self.base_url}")
+            print(f"   Error: {e}")
+            return ErrorAction.FATAL
+
+        if isinstance(e, BudgetExceededError):
+            print(f"\n⛔ BUDGET EXCEEDED — LiteLLM proxy budget limit reached.")
+            print(f"   Error: {e}")
+            return ErrorAction.FATAL
+
+        # ── SKIP: Per-item failures ───────────────────────────────
+
+        if isinstance(e, ContextWindowExceededError):
+            print(f"⚠️  CONTEXT WINDOW EXCEEDED ({self.model}): Input too long. Skipping.")
+            print(f"   Details: {str(e)[:300]}")
+            return ErrorAction.SKIP
+
+        if isinstance(e, ContentPolicyViolationError):
+            print(f"⚠️  CONTENT POLICY VIOLATION ({self.model}): Safety filter triggered. Skipping.")
+            print(f"   Details: {str(e)[:300]}")
+            return ErrorAction.SKIP
+
+        if isinstance(e, UnsupportedParamsError):
+            print(f"⚠️  UNSUPPORTED PARAMS ({self.model}): {str(e)[:300]}")
+            return ErrorAction.SKIP
+
+        if isinstance(e, JSONSchemaValidationError):
+            print(f"⚠️  SCHEMA VALIDATION FAILED ({self.model}): {str(e)[:300]}")
+            return ErrorAction.SKIP
+
+        if isinstance(e, UnprocessableEntityError):
+            print(f"⚠️  UNPROCESSABLE ENTITY ({self.model}): {str(e)[:300]}")
+            return ErrorAction.SKIP
+
+        # ── CONFIG ERROR: BadRequest base (after subclass checks!) ─
+
+        if isinstance(e, BadRequestError):
+            print(f"⚠️  BAD REQUEST ({self.model}): {str(e)[:300]}")
+            return ErrorAction.SKIP
+
+        # ── RETRY: Transient errors ───────────────────────────────
+
+        retry_label = f"Attempt {attempt + 1}/{max_retries + 1}"
+
+        if isinstance(e, RateLimitError):
+            print(f"🔄 RATE LIMITED ({self.model}) — {retry_label}")
+            return ErrorAction.RETRY
+
+        if isinstance(e, APITimeoutError):
+            print(f"🔄 TIMEOUT ({self.model}) — {retry_label}")
+            return ErrorAction.RETRY
+
+        if isinstance(e, APIConnectionError):
+            print(f"🔄 CONNECTION ERROR ({self.model}) — {retry_label}")
+            return ErrorAction.RETRY
+
+        if isinstance(e, (InternalServerError, LiteLLMServiceUnavailable)):
+            print(f"🔄 SERVER ERROR ({self.model}) — {retry_label}")
+            return ErrorAction.RETRY
+
+        if isinstance(e, ConflictError):
+            print(f"🔄 CONFLICT ({self.model}) — {retry_label}")
+            return ErrorAction.RETRY
+
+        if isinstance(e, APIError):
+            # Generic APIError fallback — treat as retryable
+            print(f"🔄 API ERROR ({self.model}) — {retry_label}: {str(e)[:300]}")
+            return ErrorAction.RETRY
+
+        # ── UNKNOWN ───────────────────────────────────────────────
+
+        print(f"💥 UNEXPECTED ERROR ({self.model}): {type(e).__name__}: {str(e)[:300]}")
+        return ErrorAction.SKIP
+
+
+    # ───────────────────────────────────────────────────────────────
+    #  GENERATE
+    # ───────────────────────────────────────────────────────────────
+
+    async def generate(self, messages: List[Dict], schema: Any = None, max_retries=2, **kwargs) -> str:
         """
-        Führt EINEN Request aus.
-        - Nutzt 'litellm', wenn ein Pydantic-Schema übergeben wird (für Cross-Provider Support).
-        - Nutzt 'openai', wenn kein Schema da ist (für Raw Speed).
-        - Retries up to X times.
+        Runs one LLM request.
+        - base_url set     → OpenAI SDK (direct endpoint, no provider prefix needed)
+        - base_url not set → LiteLLM (provider routing via model prefix, e.g. 'openrouter/...')
+        - First request discovers the best strategy (serialized via lock).
+        - All subsequent requests use the locked strategy concurrently.
         """
-        if self._connection_verified == False:
+        if not self._connection_verified:
             await self.check_connection()
 
-        async with self.sem:
-            last_error = None
+        # ── Discovery: serialize the first request to walk the matrix alone ──
+        # All other requests wait at the lock until discovery is done.
+        discovering = False
+        if self.base_url and not self._strategy_discovered:
+            await self._discovery_lock.acquire()
+            if self._strategy_discovered:
+                # Someone else discovered while we waited — release and continue
+                self._discovery_lock.release()
+            else:
+                discovering = True
+                print(f"🔬 Discovering best strategy for {self.model}...")
 
-            for attempt in range(max_retries +1):
-                try:
-                    if schema:
-                        # Fall A: Structured Output via LiteLLM (übersetzt Pydantic für Anthropic/OpenAI etc.)
-                        response = await acompletion(
-                            model=self.model,
-                            messages=messages,
-                            api_key=self.api_key,
-                            base_url=self.base_url,
-                            response_format=schema, 
-                            drop_params=False, # Ignoriert Parameter, die der Provider nicht kennt mit True was auch def ist. Reasoning effort?
-                            **kwargs
-                        )
-                        if hasattr(response, 'usage'):
+        try:
+            async with self.sem:
+                last_error = None
+                attempt = 0
+
+                while attempt <= max_retries:
+                    try:
+                        if self.base_url:
+                            # ── OpenAI SDK Path ────────────────────────────
+                            # kwargs go in first, strategy overwrites on top
+                            strategy = self.strategy
+                            call_kwargs = {
+                                "model": self.model,
+                                "messages": messages,
+                                **kwargs,
+                                "temperature": strategy.temperature,
+                            }
+
+                            # Strategy controls reasoning — always overwrites
+                            if strategy.reasoning_effort:
+                                call_kwargs["reasoning_effort"] = strategy.reasoning_effort
+                            else:
+                                call_kwargs.pop("reasoning_effort", None)
+
+                            # Strategy controls output format — always overwrites
+                            if schema:
+                                if strategy.use_schema:
+                                    call_kwargs["response_format"] = schema
+                                elif strategy.use_json_object:
+                                    call_kwargs["response_format"] = {"type": "json_object"}
+                                else:
+                                    # Vanilla mode — no response_format, inject JSON instructions into prompt. Temporary solution
+                                    call_kwargs.pop("response_format", None)
+                                    schema_json = json.dumps(schema.model_json_schema(), indent=2)
+                                    patched_messages = list(messages)
+                                    patched_messages[-1] = {
+                                        **patched_messages[-1],
+                                        "content": patched_messages[-1]["content"]
+                                            + f"\n\nRespond ONLY with valid JSON matching this schema:\n{schema_json}"
+                                    }
+                                    call_kwargs["messages"] = patched_messages
+
+                            response = await self.client.chat.completions.parse(**call_kwargs)
+
+                        else:
+                            # ── LiteLLM Path (no matrix, passthrough) ─────
+                            call_kwargs = {
+                                "model": self.model,
+                                "messages": messages,
+                                "api_key": self.api_key,
+                                "drop_params": False,
+                                **kwargs
+                            }
+                            if schema:
+                                call_kwargs["response_format"] = schema
+
+                            response = await acompletion(**call_kwargs)
+
+                        # ── Success ────────────────────────────────────
+                        if hasattr(response, 'usage') and response.usage:
                             GLOBAL_STATS.update(response.usage.model_dump())
-                        # Gibt den rohen JSON-String zurück (noch kein Objekt!)
+
+                        # Lock strategy on first success
+                        if discovering and not self._strategy_discovered:
+                            self._strategy_discovered = True
+                            print(f"   🔒 Strategy locked: '{self.strategy.name}'")
+
+                        # Cache hint (only log once to avoid spam)
+                        if not self._cache_hit_logged:
+                            cache_hit = getattr(response, '_hidden_params', {}).get('cache_hit', False)
+                            if cache_hit:
+                                print(f"   💾 Cache hit detected — provider is caching responses.")
+                                self._cache_hit_logged = True
+
                         return response.choices[0].message.content
-                    
-                    else:
-                        # Fall B: Raw Text via OpenAI SDK
-                        response = await self.client.chat.completions.create(
-                            model=self.model,
-                            messages=messages,
-                            **kwargs
-                        )
-                        return response.choices[0].message.content
-                
-                # Critical Errors
 
-                except AuthenticationError:
-                    print(f"⛔ AUTH ERROR ({self.model}): API Key rejected/expired.")
-                    exit("FATAL: Sudden Auth error after previous successfull connection! API Key expired?")
+                    except Exception as e:
+                        action = self._handle_api_error(e, attempt, max_retries)
 
-                except NotFoundError:
-                    print(f"⛔ MODEL ERROR: Model '{self.model}' not found on server.")
-                    exit("FATAL: MODEL ERROR: Model '{self.model}' not found on server.")
+                        # During discovery: advance strategy on capability errors
+                        # This does NOT count as a retry attempt
+                        is_capability_error = isinstance(e, (BadRequestError, UnsupportedParamsError)) \
+                            and not isinstance(e, (ContextWindowExceededError, ContentPolicyViolationError))
 
-                except BadRequestError as e:
-                    # WARNING: ONLY EXIT AFTER CERTAIN MODEL DEATH!! --> CAN BE REASONING ERROR
-                    print(f"CONFIG ERROR: Could not use model '{self.model}'. Provider is missing or unkown.")
-                    print(f"Details: {e}")
-                    print(f"Hint: If using a custom endpoint (vllm, sglang), try adding 'openai/' prefix (e.g., 'openai/{self.model}')\n")
-                    exit(f"CRITICAL: Could not use model '{self.model}'. Provider is missing or unkown.")
-                    # 
+                        if is_capability_error and discovering and self._next_strategy():
+                            continue  # same attempt counter, just different strategy
 
+                        # Follow the action from the error handler
+                        if action == ErrorAction.FATAL:
+                            exit(f"FATAL: {type(e).__name__} — Cannot continue.")
 
-                # 2. RETRIABLE (Warten & nochmal)
-                except (APIConnectionError, RateLimitError, InternalServerError, APITimeoutError, LiteLLMError) as e:
-                    if attempt < max_retries:
-                        # Exponentieller Backoff (0.5s, 1.0s)
-                        wait_time = 0.5 * (attempt + 1)
-                        await asyncio.sleep(wait_time)
-                        continue 
-                    else:
-                        last_error = e
+                        elif action == ErrorAction.SKIP:
+                            GLOBAL_STATS.log_error()
+                            return ""
 
-                # 3. CATCH-ALL
-                except Exception as e:
-                    print(f"💥 SYSTEM ERROR: {e}")
-                    return ""
+                        elif action == ErrorAction.RETRY:
+                            if attempt < max_retries:
+                                wait_time = 0.5 * (attempt + 1)
+                                print(f"   ⏳ Waiting {wait_time}s before retry...")
+                                await asyncio.sleep(wait_time)
+                                attempt += 1
+                                continue
+                            else:
+                                last_error = e
+                                break
 
-            # Loop zu Ende -> Fail
-            print(f"🔴 FAILED after {max_retries} retries. Reason: {str(last_error)[:100]}")
-            GLOBAL_STATS.log_error()
-            return ""
-        
+                # All retries exhausted
+                print(f"🔴 FAILED after {attempt + 1} attempts. Last error: {str(last_error)[:100]}")
+                GLOBAL_STATS.log_error()
+                return ""
+
+        finally:
+            # Release the discovery lock if we hold it
+            if discovering:
+                self._strategy_discovered = True  # lock at whatever level, even on failure
+                if self._discovery_lock.locked():
+                    self._discovery_lock.release()
+
 
     async def generate_batch(self, tasks_data: List[Dict], description="Processing") -> List[str]:
         """
-        Helper für Batch-Verarbeitung.
-        Erwartet eine Liste von Dicts mit args für self.generate(), z.B.:
+        Batch helper. Expects a list of dicts with args for self.generate(), e.g.:
         [{'messages': [...], 'schema': MyModel}, ...]
         """
-        if self._connection_verified == False:
+        if not self._connection_verified:
             await self.check_connection()
 
         tasks = [self.generate(**task_args) for task_args in tasks_data]
         return await tqdm_asyncio.gather(*tasks, desc=description)
-    
+
 
     async def check_connection(self):
-        print(f"📡 Testing connection to {self.base_url}...")
-        try:
-            # Wir speichern das Ergebnis nicht, wir wollen nur wissen ob kein Fehler fliegt
-            await self.client.models.list()
-            print("   ✅ Connection confirmed.")
+        """Pre-flight check: verifies API reachability and authentication."""
+        if not self.base_url:
+            # LiteLLM mode — no direct endpoint to check, skip pre-flight
+            print(f"📡 LiteLLM mode ({self.model}) — skipping pre-flight connection check.")
             self._connection_verified = True
-            #info = get_model_info(model="deepseek/deepseek-chat") # not advised because often times pseudonyms or proxies are used that will make fetching impossible
-            #info = supports_reasoning(model="openrouter/gemini") == True
+            return
+
+        print(f"📡 Testing connection to {self.base_url}/models...")
+        try:
+            await self.client.models.list()
+            print("   ✅ Connection confirmed. Server reachable")
+            self._connection_verified = True
 
         except AuthenticationError as e:
             print(f"\n❌ FATAL: Authentication Failed.")
-            print(f"   Key: {self.api_key[:5]}...")
+            print(f"   Key: {self.api_key[:6]}...")
             print(f"   Error: {e}")
-            exit("FATAL: Auth Error in check_connection")
+            exit("FATAL: Auth Error — check your API key.")
+
+        except PermissionDeniedError as e:
+            print(f"\n❌ FATAL: Permission Denied.")
+            print(f"   Your key is valid but cannot access this endpoint.")
+            print(f"   Error: {e}")
+            exit("FATAL: Permission Denied — check your API plan/tier.")
+
+        except NotFoundError as e:
+            # /v1/models may not exist on custom endpoints (vllm, sglang, etc.)
+            print(f"   ⚡ /models endpoint not available — skipping pre-flight check.")
+            print(f"   (This is normal for custom providers like vllm, sglang, etc.)")
+            self._connection_verified = True
 
         except APIConnectionError as e:
             print(f"\n❌ FATAL: Cannot connect to API endpoint.")
-            print(f"   Url: {self.base_url}")
+            print(f"   URL: {self.base_url}")
             print(f"   Error: {e}")
-            exit(f"FATAL: Cannot connect to API endpoint: {self.base_url}") 
+            print(f"   Check: Is the URL correct? Is the server running? Firewall/proxy issues?")
+            print(f"   Skip modell check with ---------------------------------------------------------------arg")
+            exit(f"FATAL: Cannot connect to {self.base_url}")
+
+        except APITimeoutError as e:
+            print(f"\n❌ FATAL: Connection timed out during pre-flight check.")
+            print(f"   URL: {self.base_url}")
+            print(f"   Error: {e}")
+            exit(f"FATAL: Timeout connecting to {self.base_url}")
 
         except Exception as e:
             print(f"\n❌ FATAL: Unexpected error during connection check.")
+            print(f"   Type: {type(e).__name__}")
             print(f"   Error: {str(e)}")
-            exit(f"FATAL: System Error in check_connection: {e}")
+            exit(f"FATAL: {type(e).__name__} in check_connection: {e}")

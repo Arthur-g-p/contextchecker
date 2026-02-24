@@ -1,0 +1,39 @@
+{
+	"_comment": "Capability Matrix — Two independent axes that degrade top-to-bottom on errors.",
+	"reasoning_params": [
+		{
+			"name": "reasoning",
+			"_comment": [
+				"OpenAI standard: reasoning_effort controls how much the model 'thinks' before answering.",
+				"DeepSeek R1: uses extra_body.include_reasoning instead:",
+				"  {\"name\": \"deepseek_reasoning\", \"params\": {\"extra_body\": {\"include_reasoning\": true}}}",
+				"Gemini 2.5/3: uses extra_body.thinking_config instead:",
+				"  {\"name\": \"gemini_thinking\", \"params\": {\"extra_body\": {\"thinking_config\": {\"thinkingLevel\": \"LOW\"}}}}",
+				"reasoning_effort is adjustable  too — you can override it"
+			],
+			"params": {
+				"reasoning_effort": "low"
+			}
+		},
+		{
+			"name": "no_reasoning",
+			"params": {}
+		}
+	],
+	"format_levels": [
+		{
+			"name": "json_schema",
+			"response_format": "__SCHEMA__"
+		},
+		{
+			"name": "json_object",
+			"response_format": {
+				"type": "json_object"
+			}
+		},
+		{
+			"name": "text",
+			"response_format": null
+		}
+	]
+}

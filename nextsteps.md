@@ -62,3 +62,20 @@ metaeval --> what we just said
 
 ketchUP
 live contradiction checker
+
+lazy iimport big dependecies?
+
+# error handling:
+
+even warns you on cache hits!!!
+
+parsing error will get catched by OPENAI SDK!! i might need to prevent it-
+
+I want to release it using CLI. when ppl keyboard interrupt can I catch the event and make a graceful shutdown? this increases quality of life by a lot imo
+
+if no schema -- different prompt is needed!!
+
+cli version i feel like most go with envs. but does it work for me?
+
+
+Exact numbers game!!! close to etc may not reap results you expect. exact number mode?

@@ -75,8 +75,8 @@ async def main():
 
 
     # Extractor (sentence)
-    extractor = Extractor(baseapi = "http://localhost:4000/v1", model = "openrouter/gemini") # openrouter so litellm knows what this is and how to speak to it.
-    checker = Checker(baseapi = "http://localhost:4000/v1", model = "openrouter/gemini")
+    extractor = Extractor(model = "gemini", baseapi = "http://localhost:4000/v1") # openrouter so litellm knows what this is and how to speak to it.
+    checker = Checker(model = "openrouter/meta-llama/llama-3-70b-instruct")
     # check if checker works before the extractor runs too!!!
     
     # PHASE 1: MASS EXTRACTION ---
@@ -136,7 +136,8 @@ async def main():
             "question": item.get("question", ""),
             "reference": item.get("reference", ""),
             "response": item.get("response", ""),
-            "claims": claims_entry
+            "claims": claims_entry,
+            "absention": True if len(claims_entry) == 0 else False
         }
         
         final_output.append(entry)

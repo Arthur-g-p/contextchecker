@@ -10,12 +10,12 @@ from src.schemas import Verdict
 #Should the checker include the Q?!?!
 
 class Checker:
-    def __init__(self, baseapi, model, concurrency=15):
+    def __init__(self, model: str = "", baseapi: str = None, concurrency: int = 10): 
         self.model = model
         self.client = LLMClient(
-            base_url=baseapi,
             api_key=config.CHECKER_API_KEY,
             model=model,
+            base_url=baseapi,
             concurrency=concurrency 
         )
         self.prompts = config.PROMPTS
@@ -29,6 +29,7 @@ class Checker:
         """
         print(f"Preparing checking for {len(claims_batch)} documents...")
 
+        # check for empty triplets or abstentions!
         # 1. Flatten the structure for the API Batch
         # We need to map every single claim to its specific reference text.
         flat_tasks = []
@@ -99,6 +100,7 @@ class Checker:
             ]
             
             # Add to batch
+            # Only content-related params — execution params are owned by the strategy
             batch_tasks.append({
                 "messages": messages,
                 "schema": Verdict, # Force structured output!

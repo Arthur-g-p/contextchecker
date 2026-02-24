@@ -56,7 +56,7 @@ class MetaEvaluator:
             
             # Logic aus dem originalen Paper (RefChecker):
             if not tool_kg:
-                # "Silence is Truth" (Wenn nichts extrahiert wurde, nehmen wir an, es ist wahr)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                # "Silence is Truth" (Wenn nichts extrahiert wurde, nehmen wir an, es hat keine Halu rate)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 # Das ist methodisch fragwürdig, aber nötig für Vergleichbarkeit.
                 pred_is_clean = True 
                 pred_rate = 0.0
