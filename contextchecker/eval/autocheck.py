@@ -13,11 +13,11 @@
 #übrigens: div by zero crash.
 
 import asyncio
-from src.extractor import Extractor
-from src.checker import Checker
+from contextchecker.extractor import Extractor
+from contextchecker.checker import Checker
 import json
 import sys
-from src.schemas import InputItem
+from contextchecker.schemas import InputItem
 from typing import List
 
 INPUT_FILE = 'example/example_in_ref.json'

@@ -10,18 +10,9 @@ from openai import (
     NotFoundError, ConflictError, UnprocessableEntityError,
     RateLimitError, InternalServerError,
 )
-import litellm
-from litellm import (
-    acompletion, supports_reasoning, get_model_info,
-    ContextWindowExceededError, ContentPolicyViolationError,
-    UnsupportedParamsError, JSONSchemaValidationError,
-    BudgetExceededError, ServiceUnavailableError as LiteLLMServiceUnavailable,
-)
 from tqdm.asyncio import tqdm_asyncio
 from sys import exit
-from src.stats import GLOBAL_STATS
-
-litellm.suppress_debug_info = True
+from contextchecker.stats import GLOBAL_STATS
 
 
 # ───────────────────────────────────────────────────────────────
@@ -129,28 +120,28 @@ class LLMClient:
             print(f"   Error: {e}")
             return ErrorAction.FATAL
 
-        if isinstance(e, BudgetExceededError):
+        if e.__class__.__name__ == 'BudgetExceededError':
             print(f"\n⛔ BUDGET EXCEEDED — LiteLLM proxy budget limit reached.")
             print(f"   Error: {e}")
             return ErrorAction.FATAL
 
         # ── SKIP: Per-item failures ───────────────────────────────
 
-        if isinstance(e, ContextWindowExceededError):
+        if e.__class__.__name__ == 'ContextWindowExceededError':
             print(f"⚠️  CONTEXT WINDOW EXCEEDED ({self.model}): Input too long. Skipping.")
             print(f"   Details: {str(e)[:300]}")
             return ErrorAction.SKIP
 
-        if isinstance(e, ContentPolicyViolationError):
+        if e.__class__.__name__ == 'ContentPolicyViolationError':
             print(f"⚠️  CONTENT POLICY VIOLATION ({self.model}): Safety filter triggered. Skipping.")
             print(f"   Details: {str(e)[:300]}")
             return ErrorAction.SKIP
 
-        if isinstance(e, UnsupportedParamsError):
+        if e.__class__.__name__ == 'UnsupportedParamsError':
             print(f"⚠️  UNSUPPORTED PARAMS ({self.model}): {str(e)[:300]}")
             return ErrorAction.SKIP
 
-        if isinstance(e, JSONSchemaValidationError):
+        if e.__class__.__name__ == 'JSONSchemaValidationError':
             print(f"⚠️  SCHEMA VALIDATION FAILED ({self.model}): {str(e)[:300]}")
             return ErrorAction.SKIP
 
@@ -160,8 +151,29 @@ class LLMClient:
 
         # ── CONFIG ERROR: BadRequest base (after subclass checks!) ─
 
-        if isinstance(e, BadRequestError):
-            print(f"⚠️  BAD REQUEST ({self.model}): {str(e)[:300]}")
+        if isinstance(e, BadRequestError):   
+            error_text = ""
+            if hasattr(e, 'body') and isinstance(e.body, dict):
+                error_text = str(e.body).lower()
+            else:
+                error_text = str(e).lower()        
+            if "invalid model" in error_text or "model name" in error_text:
+                print(f"\n⛔ CRITICAL: Model Error for '{self.model}' - Not found!")
+                
+                # 3. String-Catching für den Prefix (wie von dir gefordert)
+                if "/" in self.model:
+                    prefix, actual_model = self.model.split("/", 1)
+                    print(f"💡 HINT: You are using the prefix '{prefix}/'.")
+                    print(f"   A possible error cause is that when using a custom base_url (Proxy/Local),")
+                    print(f"   you MUST NOT use a provider prefix, since it is not using LiteLLM. The provider information is only for the LiteLLM SDK.")
+                    print(f"   -> If that is the case: Change model to '{actual_model}' instead of '{self.model}'\n")
+                else:
+                    print(f"💡 HINT: The model name was rejected by your base_url. Call `/v1/models` to check available models.\n")
+                
+                return ErrorAction.FATAL
+        
+            # Fallback für alle anderen 400er Fehler (Context Window zu groß, falsches Schema etc.)
+            print(f"⚠️ BAD REQUEST ({self.model}): {str(e)[:300]}")
             return ErrorAction.SKIP
 
         # ── RETRY: Transient errors ───────────────────────────────
@@ -180,7 +192,7 @@ class LLMClient:
             print(f"🔄 CONNECTION ERROR ({self.model}) — {retry_label}")
             return ErrorAction.RETRY
 
-        if isinstance(e, (InternalServerError, LiteLLMServiceUnavailable)):
+        if isinstance(e, InternalServerError) or e.__class__.__name__ == 'ServiceUnavailableError':
             print(f"🔄 SERVER ERROR ({self.model}) — {retry_label}")
             return ErrorAction.RETRY
 
@@ -190,6 +202,16 @@ class LLMClient:
 
         if isinstance(e, APIError):
             # Generic APIError fallback — treat as retryable
+
+            # 1. Spezifischer Check auf 402 (Insufficient Credits / Payment Required)
+            status_code = getattr(e, "status_code", None)
+            
+            if status_code == 402:
+                print(f"\n⛔ CRITICAL ERROR (402): Out of Credits or Context too large for {self.model}.")
+                print(f"    Error: {e}")
+                return ErrorAction.FATAL
+
+            # 2. Generic APIError fallback — treat as retryable (z.B. 500, 502)
             print(f"🔄 API ERROR ({self.model}) — {retry_label}: {str(e)[:300]}")
             return ErrorAction.RETRY
 
@@ -272,6 +294,10 @@ class LLMClient:
 
                         else:
                             # ── LiteLLM Path (no matrix, passthrough) ─────
+                            import litellm
+                            litellm.suppress_debug_info = True
+                            from litellm import acompletion
+
                             call_kwargs = {
                                 "model": self.model,
                                 "messages": messages,
@@ -306,16 +332,20 @@ class LLMClient:
                         action = self._handle_api_error(e, attempt, max_retries)
 
                         # During discovery: advance strategy on capability errors
-                        # This does NOT count as a retry attempt
-                        is_capability_error = isinstance(e, (BadRequestError, UnsupportedParamsError)) \
-                            and not isinstance(e, (ContextWindowExceededError, ContentPolicyViolationError))
+                        # This does NOT count as a retry attempt except if it is a fatal error
+
+                        if action == ErrorAction.FATAL:
+                            exit(f"FATAL: {type(e).__name__} — Cannot continue.")
+
+                        is_capability_error = (
+                            isinstance(e, BadRequestError) or e.__class__.__name__ == 'UnsupportedParamsError'
+                        ) and not (
+                            e.__class__.__name__ in ('ContextWindowExceededError', 'ContentPolicyViolationError')
+                        )
 
                         if is_capability_error and discovering and self._next_strategy():
                             continue  # same attempt counter, just different strategy
 
-                        # Follow the action from the error handler
-                        if action == ErrorAction.FATAL:
-                            exit(f"FATAL: {type(e).__name__} — Cannot continue.")
 
                         elif action == ErrorAction.SKIP:
                             GLOBAL_STATS.log_error()

@@ -1,6 +1,10 @@
 import os
 import json
 import sys
+from dotenv import load_dotenv
+
+# Load .env from project root (works for CLI, debugger, and direct scripts)
+load_dotenv()
 
 
 EXTRACTOR_API_KEY = os.getenv("EXTRACTOR_API_KEY")

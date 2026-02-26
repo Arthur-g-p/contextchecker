@@ -1,7 +1,33 @@
 [project]
-name = "ragcheckerlite"
+name = "contextchecker"
 version = "0.1.0"
-description = "A liter Refchecker"
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+description = "Lightweight RAG hallucination checking pipeline"
+requires-python = ">=3.10"
+dependencies = [
+    "openai",
+    "litellm",
+    "pydantic",
+    "typer[all]",
+    "tqdm",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+eval = [
+    "torch",
+    "transformers",
+    "sentencepiece",
+]
+
+[project.scripts]
+contextchecker = "contextchecker.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["contextchecker*"]
+
+[tool.setuptools.package-data]
+contextchecker = ["*.json"]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"

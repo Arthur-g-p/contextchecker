@@ -1,13 +1,11 @@
 import os
-import sys
-import glob
 import json
 import asyncio
 from typing import List, Tuple
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from contextchecker.utils import accuracy_score, classification_report, confusion_matrix
 from collections import Counter
 
-from checker import Checker
+from contextchecker.checker import Checker
 
 # --- CONFIG ---
 DATA_DIR = "results"

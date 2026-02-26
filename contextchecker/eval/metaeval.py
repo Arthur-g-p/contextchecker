@@ -1,9 +1,7 @@
 import os
 import glob
 import json
-from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
-from scipy import stats
-
+from contextchecker.utils import f1_score, accuracy_score, confusion_matrix, stats
 # --- CONFIG ---
 RESULTS_DIR = "results"  
 GT_KEY = "claude2_response_kg" 

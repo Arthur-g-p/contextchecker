@@ -1,9 +1,9 @@
 from typing import List
 import random
-import src.config as config
-from src.utils import format_prompt
-from src.llmclient import LLMClient
-from src.schemas import ExtractionResult, MissingClaimsResult, ValidationBatchResult
+import contextchecker.config as config
+from contextchecker.utils import format_prompt
+from contextchecker.llmclient import LLMClient
+from contextchecker.schemas import ExtractionResult, MissingClaimsResult, ValidationBatchResult
 import string
 
 

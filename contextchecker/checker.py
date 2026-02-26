@@ -2,10 +2,10 @@ import json
 import os
 from openai import AsyncOpenAI
 from typing import List
-import src.config as config
-from src.utils import format_prompt
-from src.llmclient import LLMClient
-from src.schemas import Verdict
+import contextchecker.config as config
+from contextchecker.utils import format_prompt
+from contextchecker.llmclient import LLMClient
+from contextchecker.schemas import Verdict
 
 #Should the checker include the Q?!?!
 

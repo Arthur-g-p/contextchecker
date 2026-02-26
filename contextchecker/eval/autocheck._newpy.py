@@ -7,8 +7,8 @@ from typing import List, Optional
 from pydantic import BaseModel, ValidationError
 
 # Imports aus deiner eigenen Library
-from src.extractor import Extractor
-from src.checker import Checker
+from contextchecker.extractor import Extractor
+from contextchecker.checker import Checker
 
 # --- CONFIG ---
 DATA_DIR = r"C:\Users\Arthur\ragcheckerLite\data\noisy_context"
