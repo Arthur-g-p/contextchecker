@@ -79,3 +79,6 @@ cli version i feel like most go with envs. but does it work for me?
 
 
 Exact numbers game!!! close to etc may not reap results you expect. exact number mode?
+
+
+if json parsing fails multiple times we will send out solo extraction..

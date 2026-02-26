@@ -36,7 +36,12 @@ class Checker:
         doc_lengths = [] # Keeps track of which document the claim belongs to
 
         for claims, ref in zip(claims_batch, references_batch):
-            # Store the count (even if 0) so we know how to rebuild later
+            is_abstain = len(claims) == 0
+            if is_abstain:
+                doc_lengths.append(0)
+                continue
+                
+            # Store the count so we know how to rebuild later
             doc_lengths.append(len(claims)) 
             
             for claim in claims:

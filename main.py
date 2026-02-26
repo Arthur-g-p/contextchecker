@@ -136,8 +136,7 @@ async def main():
             "question": item.get("question", ""),
             "reference": item.get("reference", ""),
             "response": item.get("response", ""),
-            "claims": claims_entry,
-            "absention": True if len(claims_entry) == 0 else False
+            "claims": claims_entry
         }
         
         final_output.append(entry)
