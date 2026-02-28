@@ -1,42 +1,155 @@
-[
-  {
-    "question": "how far is kepler-22b from earth?",
-    "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
-    "response": "Kepler 22b is 600 light years away from earth.",
-    "claims": [
-      {
-        "triplet": [
-          "Kepler 22b",
-          "is distant from",
-          "earth"
-        ],
-        "verdict": "Entailment",
-        "explanation": "The reference passage states '640 light-years from Earth', which implies that Kepler-22b is distant from Earth."
-      },
-      {
-        "triplet": [
-          "Kepler 22b",
-          "distance from earth",
-          "600 light years"
-        ],
-        "verdict": "Entailment",
-        "explanation": "The reference passage states that Kepler-22b is 640 light-years from Earth, which is close to the claimed distance of 600 light years. Although the exact distance is not matched, it is close enough to be considered as entailed."
-      }
-    ],
-    "absention": false
+{
+  "_meta": {
+    "version": "0.1.0",
+    "extractor_model": "gemini",
+    "checker_model": "gemini",
+    "source_file": "example_in_ref.json",
+    "timestamp_start": "2026-02-28T21:11:14.186072+00:00",
+    "timestamp_end": "2026-02-28T21:11:47.921312+00:00",
+    "duration_seconds": 33.63,
+    "status": "complete",
+    "total": 5,
+    "skipped": {},
+    "abstentions": 2,
+    "token_stats": {
+      "input_tokens": 3321,
+      "output_tokens": 3771,
+      "total_requests": 14,
+      "total_errors": 0
+    }
   },
-  {
-    "question": "how far is kepler-22b from earth?",
-    "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
-    "response": "I don't know.",
-    "claims": [],
-    "absention": true
-  },
-  {
-    "question": "how far is kepler-22b from earth?",
-    "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
-    "response": "",
-    "claims": [],
-    "absention": true
-  }
-]
+  "data": [
+    {
+      "question": "how far is kepler-22b from earth?",
+      "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
+      "response": "Kepler 22b is 600 light years away from earth.",
+      "claims": [
+        {
+          "triplet": [
+            "Kepler 22b",
+            "is away from",
+            "earth"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference states that Kepler-22b is an exoplanet orbiting a star 640 light-years from Earth, which entails that it is away from Earth."
+        },
+        {
+          "triplet": [
+            "Kepler 22b",
+            "distance from earth",
+            "600 light years"
+          ],
+          "verdict": "Contradiction",
+          "explanation": "The reference states that Kepler-22b is 640 light-years from Earth, which contradicts the claim of 600 light years."
+        }
+      ]
+    },
+    {
+      "question": "how far is kepler-22b from earth?",
+      "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
+      "response": "I don't know.",
+      "claims": []
+    },
+    {
+      "question": "how far is kepler-22b from earth?",
+      "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
+      "response": "",
+      "claims": []
+    },
+    {
+      "question": "how far is kepler-22b from earth?",
+      "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
+      "response": "Kepler-22b is an exoplanet. An exoplanet is a planet that orbits a star outside our solar system. It is located 640 light-years from Earth. It mostly consists of water.",
+      "claims": [
+        {
+          "triplet": [
+            "Kepler-22b",
+            "is",
+            "exoplanet"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference explicitly states that 'Kepler-22b is an exoplanet'."
+        },
+        {
+          "triplet": [
+            "exoplanet",
+            "is",
+            "planet"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference explicitly describes Kepler-22b as an exoplanet and subsequently refers to it as a 'transiting planet'."
+        },
+        {
+          "triplet": [
+            "planet",
+            "orbits",
+            "star outside our solar system"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference states that Kepler-22b is an exoplanet (a planet outside our solar system) orbiting a Sun-like star (Kepler-22) located 640 light-years from Earth."
+        },
+        {
+          "triplet": [
+            "Kepler-22b",
+            "is located",
+            "640 light-years from Earth"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference explicitly states that Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth."
+        },
+        {
+          "triplet": [
+            "Kepler-22b",
+            "consists of",
+            "water"
+          ],
+          "verdict": "Neutral",
+          "explanation": "The reference states that liquid water could exist on the planet's surface because it orbits within the habitable zone, but it does not confirm that the planet actually consists of water."
+        }
+      ]
+    },
+    {
+      "question": "how far is kepler-22b from earth?",
+      "reference": "Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth. It was discovered by NASA's Kepler Space Telescope in December 2011 and was the first known transiting planet to orbit within the habitable zone of a Sun-like star, where liquid water could exist on the planet's surface.[4] The planet's host star Kepler-22 is too dim to be seen with the naked eye.",
+      "response": "Kepler-22b is an exoplanet. An exoplanet is a planet that orbits a star outside our solar system. It is located 640 light-years from Earth. It mostly consists of rock and iron.",
+      "claims": [
+        {
+          "triplet": [
+            "Kepler-22b",
+            "is",
+            "an exoplanet"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference explicitly states that 'Kepler-22b is an exoplanet orbiting a Sun-like star'."
+        },
+        {
+          "triplet": [
+            "An exoplanet",
+            "is",
+            "a planet that orbits a star outside our solar system"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference describes Kepler-22b as an exoplanet orbiting a star 640 light-years from Earth, which implies it is a planet orbiting a star outside our solar system."
+        },
+        {
+          "triplet": [
+            "Kepler-22b",
+            "is located",
+            "640 light-years from Earth"
+          ],
+          "verdict": "Entailment",
+          "explanation": "The reference explicitly states that Kepler-22b is an exoplanet orbiting a Sun-like star 640 light-years from Earth."
+        },
+        {
+          "triplet": [
+            "Kepler-22b",
+            "mostly consists of",
+            "rock and iron"
+          ],
+          "verdict": "Neutral",
+          "explanation": "The provided reference mentions Kepler-22b's discovery, distance, and location within the habitable zone, but it does not provide any information regarding its composition (such as rock and iron)."
+        }
+      ]
+    }
+  ]
+}

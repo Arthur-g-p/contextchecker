@@ -1,4 +1,9 @@
 # utils.py
+import json
+import os
+from sys import exit
+
+
 def format_prompt(template: str, placeholders: dict[str, str]) -> str:
     """
     Safely inserts strings into double-curly brace placeholders.
@@ -11,19 +16,242 @@ def format_prompt(template: str, placeholders: dict[str, str]) -> str:
     
     return formatted_prompt
 
-def preflight_check_refchecker_input_file():
-    # find optimal handling and informing user that refrences or whatever are sometimes empty. reject empty questions.
-    pass
 
-def preflight_check_ragchecker_input_file():
-    pass
+def match_triplets_to_references_for_batch_checker(triplets, references, context_string, data):
+    tasks_triplets = []
+    tasks_references = []
 
-def preflight_check_evaluation_input_file():
-    pass
+    for i, result in enumerate(triplets):
+        if result and result.triplets:
+            claims_clean = [str(t) for t in result.triplets]
+            tasks_triplets.append(claims_clean)
+            tasks_references.append("\n".join(data[i][context_string]))
+        else:
+            tasks_triplets.append([])
+            tasks_references.append("\n".join(data[i][context_string]))
+    
+    return tasks_triplets, tasks_references
+    
+# ----------------------------------------------------------------------------------
+#  INPUT FORMAT NORMALIZATION
+# ----------------------------------------------------------------------------------
+
+def _get_reference(item: dict) -> str | None:
+    """
+    Auto-detect and normalize reference from any supported input format.
+    
+    Supports 4 combos:
+        "reference": "single string"     -> "single string"
+        "context":   ["p1", "p2"]        -> "p1\\np2"
+        "reference": ["p1", "p2"]        -> "p1\\np2"
+        "context":   "single string"     -> "single string"
+    
+    Priority: context > reference (context is the richer format).
+    Returns None if neither key found or value is empty.
+    """
+    for key in ("context", "reference"):
+        val = item.get(key)
+        if val is None:
+            continue
+        if isinstance(val, list):
+            joined = "\n".join(str(v) for v in val if str(v).strip())
+            return joined if joined else None
+        if isinstance(val, str) and val.strip():
+            return val
+    return None
+
 
 # ----------------------------------------------------------------------------------
+#  SMART DATA LOADING
+# ----------------------------------------------------------------------------------
+
+def load_and_validate_json(filepath: str, context: str, verbose: bool = False) -> list[dict]:
+    """
+    Load a JSON file, auto-detect format, skip bad items, return clean items.
+    
+    Handles both flat arrays [...] and wrapped {"_meta": {...}, "data": [...]}.
+    
+    Skip rules:
+        - Missing reference AND context  -> HARD SKIP
+        - Missing question               -> HARD SKIP
+        - Empty response                 -> KEEP (extractor handles -> abstention)
+    
+    verbose=False: prints summary counts
+    verbose=True:  also prints per-item details (index + question)
+    
+    Returns the cleaned list of items (skipped items removed).
+    Exits on fatal errors (file not found, corrupt JSON, all items skipped).
+    """
+    if not os.path.exists(filepath):
+        exit(f"File not found: {filepath}")
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            raw = json.load(f)
+    except Exception as e:
+        exit(f"Cannot load {filepath}: {e}")
+
+    # Handle wrapped format: {"_meta": {...}, "data": [...]}
+    if isinstance(raw, dict) and "data" in raw:
+        data = raw["data"]
+    elif isinstance(raw, list):
+        data = raw
+    else:
+        exit(f"{filepath}: Expected a JSON array or dict with 'data' key.")
+
+    if not isinstance(data, list) or len(data) == 0:
+        exit(f"{filepath}: Expected a non-empty JSON array.")
+
+    # --- Scan and skip bad items ---
+    valid_items = []
+    skip_no_ref = []
+    skip_no_question = []
+    warn_empty_response = []
+
+    for idx, item in enumerate(data):
+        q = item.get("question", "").strip() if isinstance(item.get("question"), str) else ""
+        ref = _get_reference(item)
+        resp = item.get("response", "")
+
+        # HARD SKIP: no reference
+        if ref is None:
+            skip_no_ref.append((idx, q or "(no question)"))
+            continue
+
+        # HARD SKIP: no question
+        if not q:
+            skip_no_question.append((idx, "(missing question)"))
+            continue
+
+        # WARN: empty response (keep - flows through as abstention)
+        if not isinstance(resp, str) or not resp.strip():
+            warn_empty_response.append((idx, q))
+
+        valid_items.append(item)
+
+    # --- Print report ---
+    total = len(data)
+    fname = os.path.basename(filepath)
+
+    print(f"\nData loaded: {fname} ({context})")
+    print(f"   Total: {total}")
+
+    if skip_no_ref:
+        print(f"   SKIPPED (no reference/context): {len(skip_no_ref)}")
+        if verbose:
+            for idx, q in skip_no_ref:
+                print(f"      [{idx}] {q}")
+
+    if skip_no_question:
+        print(f"   SKIPPED (no question): {len(skip_no_question)}")
+        if verbose:
+            for idx, q in skip_no_question:
+                print(f"      [{idx}]")
+
+    if warn_empty_response:
+        print(f"   Empty response (-> abstention): {len(warn_empty_response)}")
+        if verbose:
+            for idx, q in warn_empty_response:
+                print(f"      [{idx}] {q}")
+
+    if not valid_items:
+        exit(f"All {total} items skipped. No processable data in {filepath}. "
+             f"If your data is corrupted, reload from git.")
+
+    print(f"   Ready to process: {len(valid_items)}")
+
+    return valid_items
+
+
+# ----------------------------------------------------------------------------------
+#  PREFLIGHT CHECKS -- format-specific validation
+# ----------------------------------------------------------------------------------
+
+def preflight_check_msmarco_input_file(filepath: str, verbose: bool = False) -> list[dict]:
+    """
+    Validate an msmarco data file has the expected structure.
+    Required: response, context, claude2_response_kg (GT triplets with human_label)
+    """
+    data = load_and_validate_json(filepath, "msmarco input", verbose=verbose)
+
+    # Spot-check GT triplets structure (on first item that has them)
+    for item in data:
+        sample_kg = item.get("claude2_response_kg", [])
+        if sample_kg and isinstance(sample_kg, list) and len(sample_kg) > 0:
+            first_triplet = sample_kg[0]
+            if "triplet" not in first_triplet:
+                print(f"\nGT triplets missing 'triplet' key in claude2_response_kg")
+                print(f"   Got: {list(first_triplet.keys())}")
+                exit("Invalid msmarco data structure. Reload from git.")
+            if "human_label" not in first_triplet:
+                print(f"\nWarning: GT triplets missing 'human_label' -- evaluation will be limited")
+            break
+
+    return data
+
+
+def preflight_check_evaluation_input_file(filepath: str, extractor_model: str, checker_model: str) -> list[dict]:
+    """Validate a pipeline results file for meta evaluation."""
+    data = load_and_validate_json(filepath, "meta evaluation")
+    ext_key = f"{extractor_model}_response_kg"
+    sample = data[0]
+    if ext_key not in sample:
+        print(f"\nMissing key '{ext_key}' -- was the pipeline run with this extractor model?")
+        print(f"   Available keys: {list(sample.keys())}")
+        exit("Data validation failed.")
+    return data
+
+
+# ----------------------------------------------------------------------------------
+#  OUTPUT METADATA -- crash-safe _meta builder
+# ----------------------------------------------------------------------------------
+
+def build_meta(*, extractor_model: str = None, checker_model: str = None,
+               source_file: str = None, timestamp_start: str = None,
+               timestamp_end: str = None, duration_seconds: float = None,
+               status: str = "complete", total: int = None,
+               skipped: dict = None, abstentions: int = None,
+               token_stats: dict = None) -> dict:
+    """
+    Build crash-safe _meta dict for output JSON. Never raises.
+    Any field that fails gets set to None rather than crashing the save.
+    """
+    try:
+        from importlib.metadata import version as pkg_version
+        ver = pkg_version("contextchecker")
+    except Exception:
+        ver = None
+
+    meta = {}
+    try:
+        meta["version"] = ver
+        meta["extractor_model"] = extractor_model
+        meta["checker_model"] = checker_model
+        meta["source_file"] = source_file
+        meta["timestamp_start"] = timestamp_start
+        meta["timestamp_end"] = timestamp_end
+        meta["duration_seconds"] = round(duration_seconds, 2) if duration_seconds else None
+        meta["status"] = status
+        meta["total"] = total
+        meta["skipped"] = skipped or {}
+        meta["abstentions"] = abstentions
+        meta["token_stats"] = token_stats or {}
+    except Exception:
+        meta["_error"] = "Failed to build complete _meta"
+
+    return meta
+
+
+
+
+
+
+
+
+
+
+
 #  CUSTOM METRICS (Drop-in replacements to avoid heavy scipy/scikit-learn dependencies)
-# ----------------------------------------------------------------------------------
 import math
 from collections import Counter
 

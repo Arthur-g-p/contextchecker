@@ -8,7 +8,8 @@ ContextChecker evaluates its pipeline at **three levels**, each isolating a diff
 |---------|-------------------|-------------|------|-------------|
 | `eval extractor` | Are predicted triplets semantically the same as GT? | GT data with both `claude2_response_kg` and `{model}_response_kg` | ❌ | ✅ `pip install contextchecker[eval]` |
 | `eval checker` | Does the checker label GT triplets correctly? | GT data with `claude2_response_kg` (has `human_label`) + `context` | ✅ costs tokens | ❌ |
-| `eval meta` | End-to-end pipeline accuracy at item level | Pipeline output (from `run` or `results/`) | ❌ | ❌ |
+| `eval meta --data` | End-to-end pipeline accuracy at item level | Pipeline output (from `run` or `results/`) | ❌ | ❌ |
+| `eval meta --source` | Full pipeline run + evaluation on raw msmarco data | Raw data from `data/noisy_context/` | ✅ costs tokens | ❌ |
 | `eval full` | All three in sequence | Same as above (auto-skips unavailable components) | ✅ | optional |
 
 ## Data Requirements
@@ -43,10 +44,10 @@ The ground-truth (GT) data files contain items with human-annotated triplets:
 - Makes live API calls to check each GT triplet → **costs tokens**
 - Does NOT need prior pipeline results
 
-**Meta Eval** — evaluates the full pipeline output:
-- Requires: complete pipeline output with extraction AND checking already done
-- Uses `{extractor_model}_response_kg` with `{checker_model}_label`
-- Fully offline — no API calls
+**Meta Eval** — evaluates the full pipeline output (two modes):
+- `--data`: Uses existing pipeline output with `{extractor_model}_response_kg` + `{checker_model}_label`. Fully offline.
+- `--source`: Runs the full pipeline (extract + check) on raw data first, then evaluates. **Costs tokens.**
+- Output naming (with `--source`): `meta_msmarco_{response_model}_ext-{extractor}_chk-{checker}.json`
 
 ## Typical Workflows
 
@@ -59,19 +60,27 @@ python cli.py eval checker \
   --checker-base-api http://localhost:4000/v1
 ```
 
-### 2. Evaluate a full pipeline run
+### 2. Run pipeline + evaluate on raw msmarco data
 ```bash
-# First, run the pipeline
-python cli.py run --input data/input.json --output results/output.json
-
-# Then evaluate the output
+# Runs extraction + checking, saves results, then evaluates
 python cli.py eval meta \
-  --data results/output.json \
+  --source data/noisy_context/msmarco_gpt4_answers.json \
+  --extractor-model openai/gpt-oss-120b \
+  --checker-model openai/gpt-oss-120b \
+  --extractor-base-api http://localhost:4000/v1 \
+  --checker-base-api http://localhost:4000/v1
+# Output: results/meta_msmarco_gpt4_ext-gpt-oss-120b_chk-gpt-oss-120b.json
+```
+
+### 3. Evaluate existing pipeline results (offline)
+```bash
+python cli.py eval meta \
+  --data results/checked_msmarco_gpt4_answers_full.json \
   --extractor-model openai/gpt-oss-120b \
   --checker-model openai/gpt-oss-120b
 ```
 
-### 3. Full model check (all components)
+### 4. Full model check (all components)
 ```bash
 python cli.py eval full \
   --data results/checked_msmarco_gpt4_answers_full.json \
@@ -81,7 +90,7 @@ python cli.py eval full \
   --checker-base-api http://localhost:4000/v1
 ```
 
-### 4. Evaluate extraction quality only
+### 5. Evaluate extraction quality only
 ```bash
 # Requires: pip install contextchecker[eval]
 python cli.py eval extractor \
@@ -91,8 +100,8 @@ python cli.py eval extractor \
 
 ## Installing Optional Dependencies
 
-Extractor evaluation uses a local NLI model (e.g. `cross-encoder/nli-deberta-v3-base`).
-These are heavy (~2GB) and not installed by default:
+Extractor evaluation uses a local NLI model (default: `facebook/bart-large-mnli`).
+These are heavy (~1.6GB) and not installed by default. Works on GPU (even older cards like GTX 1660 Ti) and CPU:
 
 ```bash
 pip install contextchecker[eval]

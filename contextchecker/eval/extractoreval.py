@@ -32,8 +32,8 @@ def _detect_device() -> int:
 
     if torch.cuda.is_available():
         gpu_name = torch.cuda.get_device_name(0)
-        vram = torch.cuda.get_device_properties(0).total_mem / (1024 ** 3)
-        print(f"   🟢 GPU detected: {gpu_name} ({vram:.1f} GB VRAM)")
+        vram = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
+        print(f"   🟢 GPU detected:  {gpu_name} ({vram:.1f} GB VRAM)")
         print(f"   → Running NLI inference on GPU (device=0)")
         return 0
     else:
@@ -102,12 +102,13 @@ class ExtractorEvaluator:
         """
         Greedy 1:1 matching: for each predicted triplet, find best GT match via NLI.
         
-        Returns dict with tp, fp, fn counts and match details.
+        Returns dict with tp, fp, fn counts and lists of unmatched strings.
         """
         gt_matched = [False] * len(gt_strs)
 
         tp = 0
         fp = 0
+        fp_strs = []
 
         for pred_str in pred_strs:
             best_score = 0.0
@@ -117,6 +118,7 @@ class ExtractorEvaluator:
                 if gt_matched[j]:
                     continue
                 is_match, score = self._check_equivalence(gt_str, pred_str)
+                
                 if score > best_score:
                     best_score = score
                     best_j = j
@@ -126,10 +128,12 @@ class ExtractorEvaluator:
                 tp += 1
             else:
                 fp += 1
+                fp_strs.append(pred_str)
 
         fn = sum(1 for m in gt_matched if not m)
+        fn_strs = [gt_strs[i] for i, m in enumerate(gt_matched) if not m]
 
-        return {"tp": tp, "fp": fp, "fn": fn}
+        return {"tp": tp, "fp": fp, "fn": fn, "fp_strs": fp_strs, "fn_strs": fn_strs}
 
     def evaluate_file(self, filepath: str):
         """Evaluate extractor quality by comparing predicted vs GT triplets using NLI."""
@@ -176,7 +180,11 @@ class ExtractorEvaluator:
 
         print(f"\n   📋 {len(valid_items)} items to evaluate ({missing_gt} no GT, {missing_pred} no predictions)\n")
 
-        for item in tqdm(valid_items, desc="NLI matching", unit="item"):
+        # Collect examples of errors to print at the end
+        false_positives_examples = []
+        false_negatives_examples = []
+
+        for item_idx, item in enumerate(tqdm(valid_items, desc="NLI matching", unit="item")):
             # Convert triplets to strings
             gt_strs = []
             for t in item[GT_KEY]:
@@ -186,7 +194,7 @@ class ExtractorEvaluator:
 
             pred_strs = []
             for t in item[self.pred_key]:
-                triplet = t.get("triplet", [])
+                triplet = t.get("triplet", t.get("claim", []))
                 if len(triplet) >= 3:
                     pred_strs.append(self._triplet_to_str(triplet))
 
@@ -202,6 +210,13 @@ class ExtractorEvaluator:
             total_tp += result["tp"]
             total_fp += result["fp"]
             total_fn += result["fn"]
+            
+            # Store the mis-matches from this item
+            for fp_str in result.get("fp_strs", []):
+                false_positives_examples.append(f"Q: {item.get('question', 'N/A')}\n   FALSE POSITIVE (Hallucination?): '{fp_str}'")
+            for fn_str in result.get("fn_strs", []):
+                false_negatives_examples.append(f"Q: {item.get('question', 'N/A')}\n   FALSE NEGATIVE (Missed): '{fn_str}'")
+
             items_evaluated += 1
 
         # --- METRICS ---
@@ -209,6 +224,24 @@ class ExtractorEvaluator:
             total_items, missing_gt, missing_pred, items_evaluated,
             total_tp, total_fp, total_fn, gt_counts, pred_counts
         )
+        
+        # --- ERROR ANALYSIS ---
+        print("\n\n" + "!" * 60)
+        print("🚨 ERROR ANALYSIS (FALSE POSITIVES)")
+        print("These are claims the model extracted that did NOT match any Ground Truth.")
+        print("They hurt Precision.")
+        print("!" * 60)
+        for i, fp in enumerate(false_positives_examples):
+            print(f"{i+1}. {fp}")
+            
+        print("\n\n" + "!" * 60)
+        print("🚨 ERROR ANALYSIS (FALSE NEGATIVES)")
+        print("These are Ground Truth claims the model completely MISSED.")
+        print("They hurt Recall.")
+        print("!" * 60)
+        for i, fn in enumerate(false_negatives_examples):
+            print(f"{i+1}. {fn}")
+        print("\n")
 
         # --- CLEANUP ---
         self._cleanup()

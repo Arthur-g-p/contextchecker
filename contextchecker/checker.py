@@ -24,10 +24,10 @@ class Checker:
     async def check_batch(self, claims_batch: List[List[str]], references_batch: List[str]) -> List[List[Verdict]]:
         """
         Checks a batch of documents. 
-        Input: A list where each item is a list of claims for that document.
-        Output: A list where each item is a list of Verdicts for that document.
+        Input: A list where each item is a list of claims for each refrence
+        Output: A list where each item is a list of Verdicts for each claim.
         """
-        print(f"Preparing checking for {len(claims_batch)} documents...")
+        print(f"Preparing checking of {len(claims_batch)} responses...")
 
         # check for empty triplets or abstentions!
         # 1. Flatten the structure for the API Batch

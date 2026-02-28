@@ -69,7 +69,9 @@ lazy iimport big dependecies?
 
 even warns you on cache hits!!!
 
-parsing error will get catched by OPENAI SDK!! i might need to prevent it-
+parsing error will get catched by OPENAI SDK!! i might need to prevent it!
+
+--> redo failed parsing calls. re-run from caller. Maybe slight variation of prompt?
 
 I want to release it using CLI. when ppl keyboard interrupt can I catch the event and make a graceful shutdown? this increases quality of life by a lot imo
 
@@ -82,3 +84,22 @@ Exact numbers game!!! close to etc may not reap results you expect. exact number
 
 
 if json parsing fails multiple times we will send out solo extraction..
+
+
+
+metaeval needs to make an entire run!
+
+
+
+strange errors: #API ERROR (openrouter/qwen/qwen3.5-35b-a3b) — Attempt 1/3: litellm.APIError: APIError: OpenrouterException - Upstream error from Alibaba: <400> InternalError.Algo.InvalidParameter: 'messages' must contain the word 'json' in some form, to use 'response_format' of type 'json_object'.
+
+
+
+set timeout... make is somewhere settable. need a proper config first of all. timeout errors are retries. 
+
+make a rerun concept
+
+
+What about a new value I could propose: precision of the answer? 
+
+caching strategy: it reads empty entries and dynmically adds them to batch. the pipe stays dumb.

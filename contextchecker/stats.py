@@ -22,6 +22,24 @@ class TokenStats:
         with self._lock:
             self.total_errors += 1
 
+    def to_dict(self) -> dict:
+        """Crash-safe dict for _meta output. Never raises."""
+        try:
+            return {
+                "input_tokens": self.input_tokens,
+                "output_tokens": self.output_tokens,
+                "total_requests": self.total_requests,
+                "total_errors": self.total_errors,
+            }
+        except Exception:
+            return {"input_tokens": None, "output_tokens": None,
+                    "total_requests": None, "total_errors": None}
+
+    def snapshot(self) -> dict:
+        """Thread-safe snapshot of current values."""
+        with self._lock:
+            return self.to_dict()
+
     def __str__(self):
         return (f"📊 Stats: {self.total_requests} reqs | "
                 f"In: {self.input_tokens} | Out: {self.output_tokens} | "

@@ -1,0 +1,384 @@
+
+========================================
+QUESTION: grace vanderwaal instagram
+========================================
+CONTEXT:
+ - Grace Vanderwaal joked about getting shorter hair on Instagram. Pictured: Grace Vanderwaal at “America’s Got Talent” Season 11 Live Show at Dolby Theater in Hollywood, California on Aug. 23, 2016. Photo: Getty Images/Mike Windle.
+ - Here are five facts to know about Grace VanderWaal’s Instagram, Twitter and other social media accounts: The adorable tween has a verified Instagram account, which has over 921,000 followers. VanderWaal’s bio states that the account is owned by her mom.
+ - Grace VanderWaal. Grace Avery VanderWaal (born January 15, 2004) is an American singer-songwriter from Suffern, New York. In September 2016, at age 12, she won the eleventh season of the NBC TV competition show America's Got Talent (AGT).
+ - (Redirected from I Don't Know My Name) Grace Avery VanderWaal (born January 15, 2004) is an American singer-songwriter from Suffern, New York. In September 2016, at age 12, she won the eleventh season of the NBC TV competition show America's Got Talent (AGT).
+ - Grace VanderWaal‏Verified account @GraceVanderWaal 2h2 hours ago. Grace VanderWaal Retweeted A Fellow Human. https://twitter.com/why_is_this_/status/855199848559136769 …. Grace VanderWaal added, A Fellow Human @why_is_this_. can't wait to see you speak at We Day Night of Inspiration!! 9 replies 17 retweets 154 likes.
+ - Grace Vanderwaal may have just tricked her 1.4 million Instagram followers into thinking that she got a pixie cut. On Tuesday, the 13-year-old singer shared a short hair selfie and asked fans if they think the haircut suited her. Several of the commenters said Vanderwaal looked beautiful with the cut.
+ - Viewing Tweets won't unblock @GraceVanderWaal. 1  Pinned Tweet. Grace VanderWaal‏Verified account @GraceVanderWaal 1 Dec 2016. 2  Grace VanderWaal‏Verified account @GraceVanderWaal 2h2 hours ago. Grace VanderWaal Retweeted A Fellow Human. 3  Grace VanderWaal‏Verified account @GraceVanderWaal 6h6 hours ago. Grace VanderWaal Retweeted Karen Wild.
+ - #2 Grace VanderWaal Facebook. Grace VanderWaal’s Facebook account is a means for her to communicate with her countless number of fans. Her account has over 470,000 likes, and her mother operates it. Grace’s mother, Tina VanderWaal responds to all the comments left by her daughter’s legions of fans.
+ - Viewing Tweets won't unblock @GraceVanderWaal. 1  Pinned Tweet. 2  Grace VanderWaal‏Verified account @GraceVanderWaal 2h2 hours ago. 3  Grace VanderWaal‏Verified account @GraceVanderWaal 6h6 hours ago.  Grace VanderWaal‏Verified account @GraceVanderWaal 6h6 hours 1  ago. Grace VanderWaal Retweeted.  Grace VanderWaal 1  Retweeted. Grace VanderWaal Retweeted.
+ - Grace VanderWaal Snapchat, Facebook, Twitter, Instagram & Videos: 5 Facts You Need to Know. The winner of America’s Got Talent 2016, 12-year-old Grace VanderWaal, has swept the country off its feet.
+
+========================================
+LLM RESPONSE (The text being extracted from):
+Grace VanderWaal has a verified Instagram account, which is owned by her mom and has over 921,000 followers.
+========================================
+
+RAW EXTRACTION OUTPUT:
+("Grace VanderWaal", "has", "verified Instagram account")
+("Grace VanderWaal's Instagram account", "owned by", "her mother")
+("Grace VanderWaal's Instagram account", "has follower count", "921,000")
+
+GROUND TRUTH (Claude):
+ - ['Grace VanderWaal', 'has', 'verified Instagram account']
+ - ['Instagram account', 'owned by', 'her mom']
+ - ['Instagram account', 'has over', '921,000 followers']
+
+PREDICTED (GPT-OSS-120B):
+ - ['Grace VanderWaal', 'has', 'verified Instagram account']
+ - ["Grace VanderWaal's Instagram account", 'owned by', 'her mother']
+ - ["Grace VanderWaal's Instagram account", 'has follower count', '921,000']
+
+👉 VERDICT: GT FAILURE & VERY PEDANTIC SCORING. They extracted the exact same facts, but used synonyms ('mom' vs 'mother', 'follower count 921,000' vs 'over 921,000'). GPT-OSS is perfect here.
+
+>>> SUGGESTIONS ON IMPROVING THE RESULTS OBJECT <<<
+In `checked_msmarco_gpt4_answers_full.json`, we should overwrite the faulty Ground Truth with these better extractions:
+```diff
+-  "claude2_response_kg": [
+-    "triplet": ['Grace VanderWaal', 'has', 'verified Instagram account']
+-    "triplet": ['Instagram account', 'owned by', 'her mom']
+-    "triplet": ['Instagram account', 'has over', '921,000 followers']
+   ]
++  "improved_claude_gt": [
++    "triplet": ['Grace VanderWaal', 'has', 'verified Instagram account']
++    "triplet": ["Grace VanderWaal's Instagram account", 'owned by', 'her mother']
++    "triplet": ["Grace VanderWaal's Instagram account", 'has follower count', '921,000']
+   ]
+```
+
+
+
+========================================
+QUESTION: can marijuana mental illness
+========================================
+CONTEXT:
+ - The short-term effects of marijuana include problems with memory and learning, distorted perception, difficulty in thinking and problem-solving, and loss of coordination. Among youth, heavy cannabis use is associated with cognitive problems and increased risk of mental illness.
+ - As a result of these studies, people have incorrectly inferred that marijuana use causes mental illness. However, this assumption stems from a basic misunderstanding of research results; namely, the fact that correlation does not imply causation. You may have heard this before.
+ - This plant material can also be concentrated in a resin called hashish or a sticky black liquid called hash oil. THC is believed to be the main chemical ingredient that produces the psychoactive effect. Marijuana is often smoked in hand-rolled cigarettes (joints), pipes, or water pipes (bongs).
+ - A glance through research results on CBD from studies around the world shows evidence to support what we know already: CBD marijuana can help mental health conditions. These users are often careful in dosage, some even using just a few drops or “homeopathic” doses to get the desired effects.
+ - Cannabis for Treating Mental Health Conditions? A Clear Yes, Maybe. Marijuana is now legal in two states, and legal for medical use in 23 states and the District of Columbia. Polls show the majority of Americans support cannabis legalization, and more and more of the country is joining the legalization trend.
+ - There is growing evidence that people with serious mental illness, including depression and psychosis, are more likely to use cannabis or have used it for long periods of time in the past. Regular use of the drug has appeared to double the risk of developing a psychotic episode or long-term schizophrenia.
+ - This leaflet looks at the research on the effects of cannabis use and mental health and is for anyone who is concerned about the issue. We hope that this will help people to make informed choices about using - or not using - cannabis. Cannabis is the most widely used substance in the UK.
+ - Around the country, medical marijuana cards are routinely given to people suffering anxiety, depression, insomnia, ADHD, trauma, and mental health issues.
+ - However, due to the possible exacerbation of psychotic mental illness that medical marijuana has the potential to cause, it should be used under the supervision of a physician who is aware of the patient’s current physical status and full medical (including mental health, family, and social) history.
+ - Marijuana, or Cannabis, refers to the dried leaves, flowers, stems, and seeds from the hemp plant Cannabis sativa, which contains the psychoactive (mind-altering) chemical delta-9-tetrahydrocannabinol (THC), as well as other related compounds.
+
+========================================
+LLM RESPONSE (The text being extracted from):
+Heavy use of marijuana is associated with an increased risk of mental illness, including depression and psychosis. Regular use of the drug has appeared to double the risk of developing a psychotic episode or long-term schizophrenia. However, it is also noted that correlation does not imply causation, and some studies suggest that CBD marijuana can help mental health conditions. Therefore, while marijuana use is linked with mental illness, it does not necessarily cause it, and in some cases, it may even be used as a treatment.
+========================================
+
+RAW EXTRACTION OUTPUT:
+("Heavy use of marijuana", "increases risk of", "depression")  
+("Heavy use of marijuana", "increases risk of", "psychosis")  
+("Regular use of marijuana", "doubles risk of", "psychotic episode")  
+("Regular use of marijuana", "doubles risk of", "long-term schizophrenia")  
+("Correlation", "does not imply", "causation")  
+("Some studies", "suggest", "CBD marijuana can help mental health conditions")  
+("Marijuana use", "is linked with", "mental illness")  
+("Marijuana use", "does not necessarily cause", "mental illness")  
+("Marijuana", "may be used as", "treatment for mental health conditions")
+
+GROUND TRUTH (Claude):
+ - ['Heavy use of marijuana', 'associated with increased risk of', 'mental illness']
+ - ['mental illness', 'includes', 'depression']
+ - ['mental illness', 'includes', 'psychosis']
+ - ['Regular use of marijuana', 'appeared to double risk of developing', 'psychotic episode']
+ - ['Regular use of marijuana', 'appeared to double risk of developing', 'long-term schizophrenia']
+ - ['correlation', 'does not imply', 'causation']
+ - ['some studies', 'suggest', 'CBD marijuana can help mental health conditions']
+ - ['marijuana use', 'linked with', 'mental illness']
+ - ['marijuana', 'does not necessarily cause', 'mental illness']
+ - ['marijuana', 'may be used as', 'treatment']
+
+PREDICTED (GPT-OSS-120B):
+ - ['Heavy use of marijuana', 'increases risk of', 'depression']
+ - ['Heavy use of marijuana', 'increases risk of', 'psychosis']
+ - ['Regular use of marijuana', 'doubles risk of', 'psychotic episode']
+ - ['Regular use of marijuana', 'doubles risk of', 'long-term schizophrenia']
+ - ['Correlation', 'does not imply', 'causation']
+ - ['Some studies', 'suggest', 'CBD marijuana can help mental health conditions']
+ - ['Marijuana use', 'is linked with', 'mental illness']
+ - ['Marijuana use', 'does not necessarily cause', 'mental illness']
+ - ['Marijuana', 'may be used as', 'treatment for mental health conditions']
+
+👉 VERDICT: GPT-OSS IS BETTER. Claude extracted meaningless dictionary definitions ('mental illness includes depression'). GPT-OSS captured the statistical risks outlined in the text.
+
+>>> SUGGESTIONS ON IMPROVING THE RESULTS OBJECT <<<
+In `checked_msmarco_gpt4_answers_full.json`, we should overwrite the faulty Ground Truth with these better extractions:
+```diff
+-  "claude2_response_kg": [
+-    "triplet": ['Heavy use of marijuana', 'associated with increased risk of', 'mental illness']
+-    "triplet": ['mental illness', 'includes', 'depression']
+-    "triplet": ['mental illness', 'includes', 'psychosis']
+-    "triplet": ['Regular use of marijuana', 'appeared to double risk of developing', 'psychotic episode']
+-    "triplet": ['Regular use of marijuana', 'appeared to double risk of developing', 'long-term schizophrenia']
+-    "triplet": ['correlation', 'does not imply', 'causation']
+-    "triplet": ['some studies', 'suggest', 'CBD marijuana can help mental health conditions']
+-    "triplet": ['marijuana use', 'linked with', 'mental illness']
+-    "triplet": ['marijuana', 'does not necessarily cause', 'mental illness']
+-    "triplet": ['marijuana', 'may be used as', 'treatment']
+   ]
++  "improved_claude_gt": [
++    "triplet": ['Heavy use of marijuana', 'increases risk of', 'depression']
++    "triplet": ['Heavy use of marijuana', 'increases risk of', 'psychosis']
++    "triplet": ['Regular use of marijuana', 'doubles risk of', 'psychotic episode']
++    "triplet": ['Regular use of marijuana', 'doubles risk of', 'long-term schizophrenia']
++    "triplet": ['Correlation', 'does not imply', 'causation']
++    "triplet": ['Some studies', 'suggest', 'CBD marijuana can help mental health conditions']
++    "triplet": ['Marijuana use', 'is linked with', 'mental illness']
++    "triplet": ['Marijuana use', 'does not necessarily cause', 'mental illness']
++    "triplet": ['Marijuana', 'may be used as', 'treatment for mental health conditions']
+   ]
+```
+
+
+
+========================================
+QUESTION: egyptians are what ethnicity
+========================================
+CONTEXT:
+ - People and Society, Ethnic Groups Aswan High Dam, Syrian Christians, southern Egypt, Mamluks, elite ranks. The ancestors of the Egyptians include many races and ethnic groups, but the present-day population is relatively uniform in terms of language and religion.
+ - But only the parts of Egypt closest to the Nile would have flooded with the black soil, and the Egyptians did not have any vocabulary to refer to race, so perhaps neither argument is wholly correct. 6 Cleopatra’s Mother
+ - A coalition of groups and individuals—including the Arab American Institute Foundation—sent a letter to the Census Bureau last summer that asked for a separate “Middle East/North Africa” ethnic category. A question about Hispanic origin, currently the only ethnic category, has been asked of all households since 1980.
+ - Egyptians (Egyptian Arabic: مَصريين‎‎ IPA:; Arabic: مِصريّون‎‎ Miṣriyyūn; Coptic: ϩⲁⲛⲣⲉⲙ̀ⲛⲭⲏⲙⲓ Hanremenkīmi) are an ethnic group and the citizens native to Egypt sharing a common culture and a variety of Egyptian Arabic. Egyptian identity is closely tied to geography.
+ - It depends but mostly African and middle eastern i believe they fall under possibly partly because many people in Egypt are mixed with middle eastern and African maybe and Egypt is in Africa. Arabic counts as well but from the list two or more races that or not hispanic.
+ - Ancient Egypt was a northeast African civilization - a single group comprised of all manner of people. Ethnic groups is a contemporary term of no historical meaning. There is no contemporary classification of ethnic groups in Ancient Egypt.
+ - The debate over the race of the Ancient Egyptians intensified during the movement to abolish slavery in the United States, as arguments relating to the justifications for slavery increasingly asserted the historical, mental and physical inferiority of black people.
+ - Religion and Ethnicity. Egypt - Religion and Ethnicity. Approximately 90% of the population is Sunni Muslim, 10% Coptic Christian. The Egyptian people are an ethnic blend of many other cultures that include: Greek, Arab, Armenian, Turkish, African, Syrian, Palestinian, European, and those of Turkish heritage. Skip to main Skip to content Skip to menu
+ - An ethnic group (or ethnicity) is a group of people whose members identify with each other, through a common heritage, often consisting of a common language, a common culture, so by proxy of you living in Egypt which is a part of the middle east, sharing the language, heritage and culture you are a middle eastern Egyptian Caucasian isn't an ...
+ - I seen Egyptian people on t.v and they look Arab, but Egyptian in south Egyptian are black aka the cultural group Nubians, They are African but what is there race and ethnicity?? Follow
+
+========================================
+LLM RESPONSE (The text being extracted from):
+Egyptians are an ethnic group native to Egypt with a common culture and a variety of Egyptian Arabic. They are a blend of many cultures that include Greek, Arab, Armenian, Turkish, African, Syrian, Palestinian, European, and Turkish heritage.
+========================================
+
+RAW EXTRACTION OUTPUT:
+("Egyptians", "are", "ethnic group")
+("Egyptians", "native to", "Egypt")
+("Egyptians", "have", "common culture")
+("Egyptians", "speak", "Egyptian Arabic")
+("Egyptians", "have cultural influence from", "Greek")
+("Egyptians", "have cultural influence from", "Arab")
+("Egyptians", "have cultural influence from", "Armenian")
+("Egyptians", "have cultural influence from", "Turkish")
+("Egyptians", "have cultural influence from", "African")
+("Egyptians", "have cultural influence from", "Syrian")
+("Egyptians", "have cultural influence from", "Palestinian")
+("Egyptians", "have cultural influence from", "European")
+
+GROUND TRUTH (Claude):
+ - ['Egyptians', 'are', 'ethnic group']
+ - ['Egyptians', 'native to', 'Egypt']
+ - ['Egyptians', 'have', 'common culture']
+ - ['Egyptians', 'speak', 'Egyptian Arabic']
+ - ['Egyptians', 'are blend of cultures', 'Greek, Arab, Armenian, Turkish, African, Syrian, Palestinian, European, Turkish']
+
+PREDICTED (GPT-OSS-120B):
+ - ['Egyptians', 'are', 'ethnic group']
+ - ['Egyptians', 'native to', 'Egypt']
+ - ['Egyptians', 'have', 'common culture']
+ - ['Egyptians', 'speak', 'Egyptian Arabic']
+ - ['Egyptians', 'have cultural influence from', 'Greek']
+ - ['Egyptians', 'have cultural influence from', 'Arab']
+ - ['Egyptians', 'have cultural influence from', 'Armenian']
+ - ['Egyptians', 'have cultural influence from', 'Turkish']
+ - ['Egyptians', 'have cultural influence from', 'African']
+ - ['Egyptians', 'have cultural influence from', 'Syrian']
+ - ['Egyptians', 'have cultural influence from', 'Palestinian']
+ - ['Egyptians', 'have cultural influence from', 'European']
+
+👉 VERDICT: GPT-OSS IS BETTER. Instead of atomic truths, Claude shoved 9 ethnicities into a single comma-separated array. GPT-OSS correctly extracted 8 separate, atomic triplets.
+
+>>> SUGGESTIONS ON IMPROVING THE RESULTS OBJECT <<<
+In `checked_msmarco_gpt4_answers_full.json`, we should overwrite the faulty Ground Truth with these better extractions:
+```diff
+-  "claude2_response_kg": [
+-    "triplet": ['Egyptians', 'are', 'ethnic group']
+-    "triplet": ['Egyptians', 'native to', 'Egypt']
+-    "triplet": ['Egyptians', 'have', 'common culture']
+-    "triplet": ['Egyptians', 'speak', 'Egyptian Arabic']
+-    "triplet": ['Egyptians', 'are blend of cultures', 'Greek, Arab, Armenian, Turkish, African, Syrian, Palestinian, European, Turkish']
+   ]
++  "improved_claude_gt": [
++    "triplet": ['Egyptians', 'are', 'ethnic group']
++    "triplet": ['Egyptians', 'native to', 'Egypt']
++    "triplet": ['Egyptians', 'have', 'common culture']
++    "triplet": ['Egyptians', 'speak', 'Egyptian Arabic']
++    "triplet": ['Egyptians', 'have cultural influence from', 'Greek']
++    "triplet": ['Egyptians', 'have cultural influence from', 'Arab']
++    "triplet": ['Egyptians', 'have cultural influence from', 'Armenian']
++    "triplet": ['Egyptians', 'have cultural influence from', 'Turkish']
++    "triplet": ['Egyptians', 'have cultural influence from', 'African']
++    "triplet": ['Egyptians', 'have cultural influence from', 'Syrian']
++    "triplet": ['Egyptians', 'have cultural influence from', 'Palestinian']
++    "triplet": ['Egyptians', 'have cultural influence from', 'European']
+   ]
+```
+
+
+
+========================================
+QUESTION: how to renew your passport on guam
+========================================
+CONTEXT:
+ - For passport renewal applications, if the expired passport has been lost and is not submitted with the application, a fee of $75 will apply; the same $75 fee applies for any other changes made pursuant to a court order, such as a name change.
+ - Driver's License Renewal Fee Total Fee. 3 Year Driver’s License - $ 25.00 + $ 10.00 processing + $ 3.00 postage fee $ 38.00. 5 Year Driver’s License - $ 45.00 + $ 10.00 processing + $ 3.00 postage fee $ 58.00. Replacement Fee for all classes - $ 25.00 + $ 10.00 processing + $ 3.00 postage fee $ 38.00.
+ - **You have 90 DAYS from the date your passport document was ISSUED to report that you have NOT YET RECEIVED it in the mail. If you do not. report the non receipt of your passport within 90 days of the issue date, you will be REQUIRED to REAPPLY and SUBMIT THE FULL PASSPORT. FEE. ***Requirements for Initial, Renewal, Lost or Stolen U.S.Passport book and/ or card for MINORS 15 years old & below:
+ - FEE FOR U.S. PASSPORT CARD MINOR 15 YEARS OLD AND BELOW $15 (30 characters on given name including spaces ) ***Requirements for Initial, Renewal, Lost or Stolen U.S.Passport book and/ or card for Adults and MINORS. 16years old & up: Minors 16 years old and up need to be accompanied by (1) parent/legal guardian.
+ - At the same time, you will also be required to submit a passport photo to be used in your eventual passport booklet. A passport photo is a two inch by two inch photograph of the front view of your face that will accurately reflect the way you expect to look on your date of travel.
+ - Palikir, Pohnpei (FSM Information Services): September 6, 2010 - FSM Citizens residing in Hawaii and Guam will now have the opportunity to apply for a passport or renew their existing one using one of the new passport issuance systems installed at the FSM Overseas Consulate Office in Hawaii or at the FSM Overseas Consulate Office in Guam.
+ - The completed application form, accompanied by the expired passport for renewal applications, and a fee of $50 for processing and standard shipping of the passport from FSM to Hawaii or Guam, all need to be submitted to the Consulate Office.
+ - Renew Your Passport Renew by Mail You can renew your passport by mail with application DS-82 if you meet the criteria listed on the U.S. Department of State web site. You can also renew your passport by bringing your prepared renewal application to a Post Office™ location.
+ - Guam Passport Expediting Services. If you find yourself in a situation where you need to quickly obtain a US passport in Guam, the nearest passport agency to your location is situated in Honolulu. The passport offices in the Prince Jonah Kuhio Kalanianaole Federal Building are more than able to process any and all requests that you may have.
+ - Renew Your Passport Renew by Mail You can renew your passport by mail with application DS-82 if you meet the criteria listed on the U.S. Department of State web site. Renew by Mail Checklist. You can also renew your passport by bringing your prepared renewal application to a Post Office™ location. Find a Post Office.
+
+========================================
+LLM RESPONSE (The text being extracted from):
+To renew your passport in Guam, you can apply by mail with application DS-82 if you meet the criteria listed on the U.S. Department of State web site. Alternatively, you can bring your prepared renewal application to a Post Office location. If your expired passport is not submitted with the application, a fee of $75 will apply. If you are a FSM Citizen residing in Guam, you can also renew your passport at the FSM Overseas Consulate Office in Guam. The completed application form, accompanied by the expired passport and a fee of $50 for processing and standard shipping of the passport, all need to be submitted to the Consulate Office.
+========================================
+
+RAW EXTRACTION OUTPUT:
+("Passport renewal in Guam", "can be applied by mail with", "application DS-82")  
+("Application DS-82", "requires meeting", "criteria listed on U.S. Department of State website")  
+("Passport renewal in Guam", "can be applied at", "Post Office location")  
+("Fee $75", "applies if", "expired passport not submitted with application")  
+("FSM Citizen residing in Guam", "can renew passport at", "FSM Overseas Consulate Office in Guam")  
+("Completed application form", "must be submitted to", "FSM Overseas Consulate Office in Guam")  
+("Completed application form", "accompanied by", "expired passport")  
+("Completed application form", "accompanied by", "fee $50 for processing and standard shipping")  
+("Fee $50", "covers", "processing and standard shipping of the passport")
+
+GROUND TRUTH (Claude):
+ - ['renew passport in Guam', 'can apply by', 'mail with application DS-82']
+ - ['renew passport in Guam', 'can apply in person at', 'Post Office location']
+ - ['renewing passport in Guam', 'requires submitting', 'expired passport']
+ - ['renewing passport in Guam without submitting expired passport', 'has fee of', '$75']
+ - ['FSM Citizen residing in Guam', 'can renew passport at', 'FSM Overseas Consulate Office in Guam']
+ - ['renewing FSM passport at FSM Consulate Office in Guam', 'requires submitting', 'completed application form']
+ - ['renewing FSM passport at FSM Consulate Office in Guam', 'requires submitting', 'expired passport']
+ - ['renewing FSM passport at FSM Consulate Office in Guam', 'has fee of', '$50']
+
+PREDICTED (GPT-OSS-120B):
+ - ['Passport renewal in Guam', 'can be applied by mail with', 'application DS-82']
+ - ['Application DS-82', 'requires meeting', 'criteria listed on U.S. Department of State website']
+ - ['Passport renewal in Guam', 'can be applied at', 'Post Office location']
+ - ['Fee $75', 'applies if', 'expired passport not submitted with application']
+ - ['FSM Citizen residing in Guam', 'can renew passport at', 'FSM Overseas Consulate Office in Guam']
+ - ['Completed application form', 'must be submitted to', 'FSM Overseas Consulate Office in Guam']
+ - ['Completed application form', 'accompanied by', 'expired passport']
+ - ['Completed application form', 'accompanied by', 'fee $50 for processing and standard shipping']
+ - ['Fee $50', 'covers', 'processing and standard shipping of the passport']
+
+👉 VERDICT: Generally, False Positives here are actually valid facts that Claude just failed to extract from the context (a severe GT issue).
+
+>>> SUGGESTIONS ON IMPROVING THE RESULTS OBJECT <<<
+In `checked_msmarco_gpt4_answers_full.json`, we should overwrite the faulty Ground Truth with these better extractions:
+```diff
+-  "claude2_response_kg": [
+-    "triplet": ['renew passport in Guam', 'can apply by', 'mail with application DS-82']
+-    "triplet": ['renew passport in Guam', 'can apply in person at', 'Post Office location']
+-    "triplet": ['renewing passport in Guam', 'requires submitting', 'expired passport']
+-    "triplet": ['renewing passport in Guam without submitting expired passport', 'has fee of', '$75']
+-    "triplet": ['FSM Citizen residing in Guam', 'can renew passport at', 'FSM Overseas Consulate Office in Guam']
+-    "triplet": ['renewing FSM passport at FSM Consulate Office in Guam', 'requires submitting', 'completed application form']
+-    "triplet": ['renewing FSM passport at FSM Consulate Office in Guam', 'requires submitting', 'expired passport']
+-    "triplet": ['renewing FSM passport at FSM Consulate Office in Guam', 'has fee of', '$50']
+   ]
++  "improved_claude_gt": [
++    "triplet": ['Passport renewal in Guam', 'can be applied by mail with', 'application DS-82']
++    "triplet": ['Application DS-82', 'requires meeting', 'criteria listed on U.S. Department of State website']
++    "triplet": ['Passport renewal in Guam', 'can be applied at', 'Post Office location']
++    "triplet": ['Fee $75', 'applies if', 'expired passport not submitted with application']
++    "triplet": ['FSM Citizen residing in Guam', 'can renew passport at', 'FSM Overseas Consulate Office in Guam']
++    "triplet": ['Completed application form', 'must be submitted to', 'FSM Overseas Consulate Office in Guam']
++    "triplet": ['Completed application form', 'accompanied by', 'expired passport']
++    "triplet": ['Completed application form', 'accompanied by', 'fee $50 for processing and standard shipping']
++    "triplet": ['Fee $50', 'covers', 'processing and standard shipping of the passport']
+   ]
+```
+
+
+
+========================================
+QUESTION: do you have to pay to get papers notarized?
+========================================
+CONTEXT:
+ - In our area most banks do it for free if you have an account with them. Also most real estate offices will have a notary that will do it for free hoping to get your business one day. I think the maximum notary fee here in AZ is $2.00 per notarized page if they want to charge you. Notary fees by state: Maximum Notary Fees By State: Don’t Get Ripped Off By Big Fat Notary Guys! | Punny Money.
+ - Everyone Looped-In. If you wish, you can invite your collegues or manager to a job (great for when you are on vacation), or invite realtors and lenders, allowing them to view the details of a job, and even get email and text notifications when the status changes!
+ - Public offices where you can find a notary public include the local clerk of court’s office and sometimes a public library. Law offices commonly have a notary on staff. If you need a power of attorney form notarized, you can generally have it done for free at the office of the attorney who prepared the document for you. Notarized documents are sometimes shipped overnight, so some UPS or FedEx stores have a notary public available.
+ - Step 2: Scan over the document. To look for certificate wording that will tell you what type of notarization to perform. To review the certificate wording to make sure it contains all the elements a Notary certificate should have and that it conforms to the requirements of your state. To check for blank spaces.
+ - There are few states that give new Notaries practical tips when performing their first notarization. Even states that have mandatory education requirements for commission applicants focus more on Notary law than Notary practice. To help the new Notaries in our community, here are 5 steps to a proper notarization:
+ - Banks Can Notarize Your Documents for Free. If you need to get a document notarized, a simple, free solution can usually be found at the nearest branch of your bank. Getting a document notarized is typically very simple. Present the document to a notary public and sign it in her presence.
+ - An apostille is a form of authentication issued to documents for use in countries that participate in the Hague Convention of 1961. If the country of intended use does not participate in the Hague Convention , documents being sent to that country can obtain a Certificate of Authentication.
+ - Notaries charge a modest fee for this service. Fees charged often depend on where you get a document notarized. Many states set maximum allowable charges, and notaries can charge any amount up to that maximum (and they can also charge nothing at all). In many cases, notarial charges are between $2 and $20 per signature.
+ - To obtain an apostille you must send the following information: Original notarized document to be authenticated or a certified copy to be authenticated that includes the original certification. Fee is $15.00 per document (a document can be more than one page).
+ - Original notarized document to be authenticated or a certified copy to be authenticated that includes the original certification. 1  Fee is $15.00 per document (a document can be more than one page). 2  Make check or money order payable in U.S. dollars (USD) to: Secretary of State.
+
+========================================
+LLM RESPONSE (The text being extracted from):
+Whether you have to pay to get papers notarized depends on where you get the documents notarized. Some banks and real estate offices offer this service for free, especially if you have an account with them or they hope to get your business in the future. However, some notaries do charge a fee, which can range from $2 to $20 per signature, depending on the state.
+========================================
+
+RAW EXTRACTION OUTPUT:
+("Payment for notarization", "depends on", "location of notarization")
+("Banks", "offer", "free notarization service")
+("Real estate offices", "offer", "free notarization service")
+("Free notarization service", "conditioned on", "having an account with provider")
+("Free notarization service", "conditioned on", "provider hoping to get future business")
+("Notaries", "charge", "notarization fee")
+("Notarization fee", "range", "$2 to $20 per signature")
+("Notarization fee", "depends on", "state")
+
+GROUND TRUTH (Claude):
+ - ['getting papers notarized', 'has cost', 'depends on where you get the documents notarized']
+ - ['Some banks', 'offer notarization service', 'for free']
+ - ['Some real estate offices', 'offer notarization service', 'for free']
+ - ['Banks offer free notarization', 'condition', 'especially if you have an account with them']
+ - ['Some notaries', 'charge fee for notarization', 'true']
+ - ['Fee for notarization by notaries', 'range', '$2 to $20 per signature']
+ - ['Range of notarization fee', 'depends on', 'the state']
+
+PREDICTED (GPT-OSS-120B):
+ - ['Payment for notarization', 'depends on', 'location of notarization']
+ - ['Banks', 'offer', 'free notarization service']
+ - ['Real estate offices', 'offer', 'free notarization service']
+ - ['Free notarization service', 'conditioned on', 'having an account with provider']
+ - ['Free notarization service', 'conditioned on', 'provider hoping to get future business']
+ - ['Notaries', 'charge', 'notarization fee']
+ - ['Notarization fee', 'range', '$2 to $20 per signature']
+ - ['Notarization fee', 'depends on', 'state']
+
+👉 VERDICT: GPT-OSS IS MORE THOROUGH. Claude missed the second condition for free notarization ('hope to get your business'). GPT-OSS extracted both conditions.
+
+>>> SUGGESTIONS ON IMPROVING THE RESULTS OBJECT <<<
+In `checked_msmarco_gpt4_answers_full.json`, we should overwrite the faulty Ground Truth with these better extractions:
+```diff
+-  "claude2_response_kg": [
+-    "triplet": ['getting papers notarized', 'has cost', 'depends on where you get the documents notarized']
+-    "triplet": ['Some banks', 'offer notarization service', 'for free']
+-    "triplet": ['Some real estate offices', 'offer notarization service', 'for free']
+-    "triplet": ['Banks offer free notarization', 'condition', 'especially if you have an account with them']
+-    "triplet": ['Some notaries', 'charge fee for notarization', 'true']
+-    "triplet": ['Fee for notarization by notaries', 'range', '$2 to $20 per signature']
+-    "triplet": ['Range of notarization fee', 'depends on', 'the state']
+   ]
++  "improved_claude_gt": [
++    "triplet": ['Payment for notarization', 'depends on', 'location of notarization']
++    "triplet": ['Banks', 'offer', 'free notarization service']
++    "triplet": ['Real estate offices', 'offer', 'free notarization service']
++    "triplet": ['Free notarization service', 'conditioned on', 'having an account with provider']
++    "triplet": ['Free notarization service', 'conditioned on', 'provider hoping to get future business']
++    "triplet": ['Notaries', 'charge', 'notarization fee']
++    "triplet": ['Notarization fee', 'range', '$2 to $20 per signature']
++    "triplet": ['Notarization fee', 'depends on', 'state']
+   ]
+```
+
+

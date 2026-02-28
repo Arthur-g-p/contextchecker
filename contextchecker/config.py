@@ -18,6 +18,8 @@ if not CHECKER_API_KEY:
     print("CRITICAL: CHECKER_API_KEY is missing from .env file.")
     sys.exit("CRITICAL: CHECKER_API_KEY is missing from .env file.")
 
+LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "120.0"))
+
 
 def _load_prompts():
     """

@@ -13,6 +13,8 @@ from openai import (
 from tqdm.asyncio import tqdm_asyncio
 from sys import exit
 from contextchecker.stats import GLOBAL_STATS
+from contextchecker import config as default_config
+from pydantic import ValidationError
 
 
 # ───────────────────────────────────────────────────────────────
@@ -58,9 +60,11 @@ class LLMClient:
         self.model = model
         self.concurrency = concurrency
         
+        self.timeout = getattr(default_config, 'LLM_TIMEOUT', 120.0)
+
         # OpenAI SDK client — only created if base_url is set (direct endpoint mode)
         if self.base_url:
-            self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key)
+            self.client = AsyncOpenAI(base_url=self.base_url, api_key=self.api_key, timeout=self.timeout)
         else:
             self.client = None  # LiteLLM mode — no direct client needed
         
@@ -74,7 +78,7 @@ class LLMClient:
         self._cache_hit_logged = False  # Only log cache hint once
 
         sdk_mode = "OpenAI SDK" if self.base_url else "LiteLLM"
-        print(f"🔧 LLMClient initialized: {self.model} via {sdk_mode}")
+        print(f"🔧 LLMClient initialized: {self.model} via {sdk_mode}" + (f" @ {base_url}" if base_url else ""))
 
 
     @property
@@ -138,12 +142,15 @@ class LLMClient:
             return ErrorAction.SKIP
 
         if e.__class__.__name__ == 'UnsupportedParamsError':
-            print(f"⚠️  UNSUPPORTED PARAMS ({self.model}): {str(e)[:300]}")
+            if self.base_url == None:
+                print(f"⚠️  UNSUPPORTED PARAMS ({self.model}): {str(e)[:300]}")
+                print(f"💡 HINT: If using a new model, litellm may not detect the provider/model combinations thus its capabilites. Update litellm with pip install --upgrade litellm. Or set the --checker/extractor-base-api to a provider that supports the model. Or set drop_params=True in the LLMClient.")
+
             return ErrorAction.SKIP
 
         if e.__class__.__name__ == 'JSONSchemaValidationError':
             print(f"⚠️  SCHEMA VALIDATION FAILED ({self.model}): {str(e)[:300]}")
-            return ErrorAction.SKIP
+            return ErrorAction.RETRY
 
         if isinstance(e, UnprocessableEntityError):
             print(f"⚠️  UNPROCESSABLE ENTITY ({self.model}): {str(e)[:300]}")
@@ -212,13 +219,17 @@ class LLMClient:
                 return ErrorAction.FATAL
 
             # 2. Generic APIError fallback — treat as retryable (z.B. 500, 502)
+            # gotta work this out better! litellm should crash most likely crash. openaisdk NOT
             print(f"🔄 API ERROR ({self.model}) — {retry_label}: {str(e)[:300]}")
             return ErrorAction.RETRY
 
+        if isinstance(e, ValidationError):
+            print(f"⚠️ LOCAL SCHEMA VALIDATION FAILED ({self.model}): Model generated incomplete JSON.")
+            return ErrorAction.RETRY 
         # ── UNKNOWN ───────────────────────────────────────────────
 
         print(f"💥 UNEXPECTED ERROR ({self.model}): {type(e).__name__}: {str(e)[:300]}")
-        return ErrorAction.SKIP
+        return ErrorAction.RETRY
 
 
     # ───────────────────────────────────────────────────────────────
@@ -252,6 +263,7 @@ class LLMClient:
             async with self.sem:
                 last_error = None
                 attempt = 0
+                schema_retries = 0
 
                 while attempt <= max_retries:
                     try:
@@ -263,14 +275,21 @@ class LLMClient:
                                 "model": self.model,
                                 "messages": messages,
                                 **kwargs,
-                                "temperature": strategy.temperature,
+                                "temperature": strategy.temperature
                             }
 
                             # Strategy controls reasoning — always overwrites
                             if strategy.reasoning_effort:
                                 call_kwargs["reasoning_effort"] = strategy.reasoning_effort
+                                existing_extra_body = call_kwargs.get("extra_body", {})
+                                existing_extra_body["allowed_openai_params"] = ["reasoning_effort"]
+                                call_kwargs["extra_body"] = existing_extra_body
+                                # -----------------------------------------------
                             else:
                                 call_kwargs.pop("reasoning_effort", None)
+                                # Falls extra_body gesetzt war, bereinigen wir das
+                                if "extra_body" in call_kwargs and "allowed_openai_params" in call_kwargs["extra_body"]:
+                                    call_kwargs["extra_body"]["allowed_openai_params"] = []
 
                             # Strategy controls output format — always overwrites
                             if schema:
@@ -302,7 +321,8 @@ class LLMClient:
                                 "model": self.model,
                                 "messages": messages,
                                 "api_key": self.api_key,
-                                "drop_params": False,
+                                "drop_params": True, # Does NOT try out capability matrix. Trust in Litellm. If you want to do capabilitytesting set base_url even when using a provider.
+                                "timeout": self.timeout,
                                 **kwargs
                             }
                             if schema:
@@ -319,7 +339,7 @@ class LLMClient:
                             self._strategy_discovered = True
                             print(f"   🔒 Strategy locked: '{self.strategy.name}'")
 
-                        # Cache hint (only log once to avoid spam)
+                        # Cache hint (only log once to avoid spam) Catch it properly
                         if not self._cache_hit_logged:
                             cache_hit = getattr(response, '_hidden_params', {}).get('cache_hit', False)
                             if cache_hit:
@@ -346,6 +366,15 @@ class LLMClient:
                         if is_capability_error and discovering and self._next_strategy():
                             continue  # same attempt counter, just different strategy
 
+                        if isinstance(e, ValidationError) and discovering:
+                            if schema_retries < 3:
+                                print(f"   ⚠️ Schema Error. Retrying same strategy ({schema_retries + 1}/3)...")
+                                schema_retries += 1
+                                # add more verbose and detailed JSON description
+                                continue
+                            else:
+                                print("   ❌ Model failed JSON schema 3 times. Downgrading strategy...")
+                                is_capability_error = True
 
                         elif action == ErrorAction.SKIP:
                             GLOBAL_STATS.log_error()

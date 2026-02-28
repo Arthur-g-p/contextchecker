@@ -6,7 +6,8 @@ import sys
 from contextchecker.schemas import InputItem
 from typing import List
 
-INPUT_FILE = 'example/example_in_ref.json'
+#INPUT_FILE = 'example/example_in_ref.json'
+INPUT_FILE = 'example/content.json'
 OUTPUT_FILE = 'output_results.json'
 
 
@@ -64,19 +65,19 @@ async def main():
         print("Input file not found. Please create example/example_in_ref.json")
         return
 
-    clean_data = preflight_check(data)
+    #clean_data = preflight_check(data)
 
 
     # data quality checking and if the format works. Estimation of requests!
 
     # Prepare data for batch processing
     all_responses = [item["response"] for item in data]
-    all_references = [item["reference"] for item in data]
+    all_references = [item["context"] for item in data]
 
 
     # Extractor (sentence)
     extractor = Extractor(model = "gemini", baseapi = "http://localhost:4000/v1") # openrouter so litellm knows what this is and how to speak to it.
-    checker = Checker(model = "openrouter/meta-llama/llama-3-70b-instruct")
+    checker = Checker(model = "gemini", baseapi = "http://localhost:4000/v1")
     # check if checker works before the extractor runs too!!!
     
     # PHASE 1: MASS EXTRACTION ---
@@ -142,7 +143,6 @@ async def main():
         final_output.append(entry)
 
 
-    # show some averages! like in eval
     # --- 4. OUTPUT TO FILE ---
     OUTPUT_FILE = "results_final.json"
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
